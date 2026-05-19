@@ -2010,6 +2010,7 @@ function renderShare() {
       <div class="card" style="padding:14px" id="share-agendor-card">
         <div class="sec-title" style="font-size:10px;margin-bottom:10px">CRM — Agendor</div>
         <div style="font-size:11px;color:var(--g2);text-align:center;padding:20px 0">Carregando...</div>
+        <div id="agendor-stats"></div>
       </div>
       <div class="card" style="padding:14px">
         <div class="sec-title" style="font-size:10px;margin-bottom:10px">Ritmo Necessário — Meta Dez/2026</div>
@@ -2096,6 +2097,7 @@ function renderShare() {
         if(dd&&!dd.closest('.card').contains(e.target)){dd.style.display='none';document.removeEventListener('click',closeDD);}
       });
     },0);
+    document.getElementById('agendor-stats').innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div style="background:var(--g3);border-radius:6px;padding:10px;text-align:center">
           <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Novos negócios</div>
