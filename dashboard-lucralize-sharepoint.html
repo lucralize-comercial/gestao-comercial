@@ -471,7 +471,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       <!-- Acompanhamento mensal consolidado -->
       <div class="sec-title" style="margin-bottom:6px;margin-top:8px">📅 Acompanhamento Mensal 2026 — Meta vs Realizado</div>
       <div id="share-mensal" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px" id="share-extra-cards"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px" id="share-extra-cards"></div>
       <div class="sec-title" style="margin-bottom:10px">📈 Evolução Semanal — Últimos 6 Meses</div>
       <div id="share-semanal"></div>
     </div>
@@ -1964,6 +1964,10 @@ function renderShare() {
         <div style="display:flex;flex-direction:column;gap:8px">${_motivosHTML||'<div style="color:var(--g2);font-size:12px">Sem dados</div>'}</div>
       </div>
 
+      <div class="card" style="padding:14px" id="share-agendor-card">
+        <div class="sec-title" style="font-size:10px;margin-bottom:10px">CRM — Agendor</div>
+        <div style="font-size:11px;color:var(--g2);text-align:center;padding:20px 0">Carregando...</div>
+      </div>
       <div class="card" style="padding:14px">
         <div class="sec-title" style="font-size:10px;margin-bottom:10px">Ritmo Necessário — Meta Dez/2026</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -1985,6 +1989,88 @@ function renderShare() {
           </div>
         </div>
       </div>`;
+  }
+
+  // ─── Agendor CRM ───
+  const AGENDOR_PROXY = 'https://agendo-proxy-production.up.railway.app';
+  const agendorCard = document.getElementById('share-agendor-card');
+  let _agendorAllDeals = [];
+
+  function renderAgendorCard(deals, funisSelecionados) {
+    const now2 = new Date();
+    const mesAtual2 = now2.getMonth(), anoAtual2 = now2.getFullYear();
+    const _ml = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mesAtual2];
+
+    // Filtra por funil se houver seleção
+    const filtered = funisSelecionados.length > 0
+      ? deals.filter(d => funisSelecionados.includes(d.dealStage?.funnel?.name))
+      : deals;
+
+    // Novos negócios criados no mês atual
+    const novosMes = filtered.filter(d=>{
+      const c = new Date(d.createdAt);
+      return c.getFullYear()===anoAtual2 && c.getMonth()===mesAtual2;
+    });
+    const ganhos = novosMes.filter(d=>d.dealStatus?.id===2).length;
+    const abertos = novosMes.filter(d=>d.dealStatus?.id===1).length;
+    const perdidos = novosMes.filter(d=>d.dealStatus?.id===3).length;
+    const total = novosMes.length;
+
+    // Funis disponíveis para o filtro
+    const todosOsFunis = [...new Set(deals.map(d=>d.dealStage?.funnel?.name).filter(Boolean))].sort();
+    const funisBadges = todosOsFunis.map(f => {
+      const sel = funisSelecionados.includes(f);
+      return `<span onclick="window._agendorToggleFunil('${f.replace(/'/g,"\'")}',this)" style="cursor:pointer;padding:3px 8px;border-radius:12px;font-size:9px;font-weight:500;border:1px solid ${sel?'#0C7488':'#AAB8C2'};background:${sel?'#0C7488':'transparent'};color:${sel?'#fff':'#657786'};white-space:nowrap">${f}</span>`;
+    }).join('');
+
+    if(!agendorCard) return;
+    agendorCard.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="sec-title" style="font-size:10px;margin-bottom:0">CRM Agendor — ${_ml}/${anoAtual2}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">${funisBadges||'<span style="font-size:10px;color:var(--g2)">Carregando funis...</span>'}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div style="background:var(--g3);border-radius:6px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Novos negócios</div>
+          <div style="font-size:22px;font-weight:600;color:#0C7488">${total}</div>
+        </div>
+        <div style="background:var(--g3);border-radius:6px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Ganhos</div>
+          <div style="font-size:22px;font-weight:600;color:#1a7a3a">${ganhos}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="background:var(--g3);border-radius:6px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Em andamento</div>
+          <div style="font-size:18px;font-weight:600;color:#BA7517">${abertos}</div>
+          <div style="font-size:9px;color:var(--g2)">faltam ativar</div>
+        </div>
+        <div style="background:var(--g3);border-radius:6px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Perdidos</div>
+          <div style="font-size:18px;font-weight:600;color:#F62642">${perdidos}</div>
+        </div>
+      </div>`;
+  }
+
+  // Toggle de funil
+  let _agendorFunisSel = [];
+  window._agendorToggleFunil = function(funil, el) {
+    const idx = _agendorFunisSel.indexOf(funil);
+    if(idx >= 0) _agendorFunisSel.splice(idx, 1);
+    else _agendorFunisSel.push(funil);
+    renderAgendorCard(_agendorAllDeals, _agendorFunisSel);
+  };
+
+  if(agendorCard) {
+    fetch(AGENDOR_PROXY+'/deals')
+      .then(r=>r.json())
+      .then(result=>{
+        _agendorAllDeals = result.data||[];
+        renderAgendorCard(_agendorAllDeals, _agendorFunisSel);
+      })
+      .catch(()=>{
+        if(agendorCard) agendorCard.innerHTML = '<div class="sec-title" style="font-size:10px;margin-bottom:8px">CRM — Agendor</div><div style="font-size:11px;color:var(--g2);text-align:center;padding:16px 0">⚠ Não foi possível conectar</div>';
+      });
   }
 }
 
