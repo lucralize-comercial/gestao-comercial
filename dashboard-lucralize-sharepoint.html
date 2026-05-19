@@ -2043,81 +2043,35 @@ function renderShare() {
     const now2 = new Date();
     const mesAtual2 = now2.getMonth(), anoAtual2 = now2.getFullYear();
     const _ml = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mesAtual2];
+    const filtered = funisSelecionados.length > 0 ? deals.filter(d=>funisSelecionados.includes(d.dealStage?.funnel?.name)) : deals;
+    const novosMes = filtered.filter(d=>{const c=new Date(d.createdAt);return c.getFullYear()===anoAtual2&&c.getMonth()===mesAtual2;});
+    const ganhos=novosMes.filter(d=>d.dealStatus?.id===2).length;
+    const abertos=novosMes.filter(d=>d.dealStatus?.id===1).length;
+    const perdidos=novosMes.filter(d=>d.dealStatus?.id===3).length;
+    const total=novosMes.length;
+    const todosOsFunis=[...new Set(deals.map(d=>d.dealStage?.funnel?.name).filter(Boolean))].sort();
+    const selectedLabel=funisSelecionados.length===0?'Todos os funis':funisSelecionados.length===1?funisSelecionados[0]:funisSelecionados.length+' funis selecionados';
 
-    // Filtra por funil se houver seleção
-    const filtered = funisSelecionados.length > 0
-      ? deals.filter(d => funisSelecionados.includes(d.dealStage?.funnel?.name))
-      : deals;
-
-    // Novos negócios criados no mês atual
-    const novosMes = filtered.filter(d=>{
-      const c = new Date(d.createdAt);
-      return c.getFullYear()===anoAtual2 && c.getMonth()===mesAtual2;
-    });
-    const ganhos = novosMes.filter(d=>d.dealStatus?.id===2).length;
-    const abertos = novosMes.filter(d=>d.dealStatus?.id===1).length;
-    const perdidos = novosMes.filter(d=>d.dealStatus?.id===3).length;
-    const total = novosMes.length;
-
-    // Funis disponíveis para o filtro
-    const todosOsFunis = [...new Set(deals.map(d=>d.dealStage?.funnel?.name).filter(Boolean))].sort();
-    const funisCheckboxes = todosOsFunis.map(f => {
-      const checked = funisSelecionados.includes(f);
-      return `<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--navy);border-radius:4px;transition:background .15s" onmouseover="this.style.background='var(--g3)'" onmouseout="this.style.background='transparent'">
-        <input type="checkbox" value="${f}" ${checked?'checked':''} onchange="window._agendorToggleCheck(this)" style="accent-color:#0C7488;cursor:pointer">
-        ${f}
-      </label>`;
-    }).join('');
-
-    const selectedLabel = funisSelecionados.length===0 ? 'Todos os funis' : funisSelecionados.length===1 ? funisSelecionados[0] : funisSelecionados.length+' funis selecionados';
+    const cbItems = ['<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--g1);border-bottom:1px solid var(--g3)" onmouseover="this.style.background='var(--g3)'" onmouseout="this.style.background='transparent'"><input type="checkbox" '+(funisSelecionados.length===0?'checked':'')+' onchange="window._agendorSelectAll(this)" style="accent-color:#0C7488;cursor:pointer"> Todos os funis</label>',
+      ...todosOsFunis.map(f=>'<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--navy)" onmouseover="this.style.background='var(--g3)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="'+f+'" '+(funisSelecionados.includes(f)?'checked':'')+' onchange="window._agendorToggleCheck(this)" style="accent-color:#0C7488;cursor:pointer"> '+f+'</label>')
+    ].join('');
 
     if(!agendorCard) return;
-    agendorCard.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div class="sec-title" style="font-size:10px;margin-bottom:0">CRM Agendor — ${_ml}/${anoAtual2}</div>
-      </div>
-      <div style="position:relative;margin-bottom:10px">
-        <button onclick="document.getElementById('agendor-funil-dropdown').classList.toggle('open')"
-          style="width:100%;padding:5px 10px;border-radius:6px;border:1px solid var(--g2);background:var(--white);font-size:10px;color:var(--navy);font-family:Poppins,sans-serif;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center">
-          <span>${selectedLabel}</span><span style="color:var(--g2)">▾</span>
-        </button>
-        <div id="agendor-funil-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--g2);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:100;max-height:180px;overflow-y:auto;margin-top:2px">
-          <label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--g1);border-bottom:1px solid var(--g3);border-radius:4px" onmouseover="this.style.background='var(--g3)'" onmouseout="this.style.background='transparent'">
-            <input type="checkbox" id="agendor-all-check" ${funisSelecionados.length===0?'checked':''} onchange="window._agendorSelectAll(this)" style="accent-color:#0C7488;cursor:pointer">
-            Todos os funis
-          </label>
-          ${funisCheckboxes}
-        </div>
-      </div>`;
-
-    // Close dropdown when clicking outside
-    setTimeout(()=>{
-      document.addEventListener('click', function closeDD(e){
-        const dd=document.getElementById('agendor-funil-dropdown');
-        if(dd&&!dd.closest('.card').contains(e.target)){dd.style.display='none';document.removeEventListener('click',closeDD);}
-      });
-    },0);
-    document.getElementById('agendor-stats').innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div style="background:var(--g3);border-radius:6px;padding:10px;text-align:center">
-          <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Novos negócios</div>
-          <div style="font-size:22px;font-weight:600;color:#0C7488">${total}</div>
-        </div>
-        <div style="background:var(--g3);border-radius:6px;padding:10px;text-align:center">
-          <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Ganhos</div>
-          <div style="font-size:22px;font-weight:600;color:#1a7a3a">${ganhos}</div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div style="background:var(--g3);border-radius:6px;padding:8px;text-align:center">
-          <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Em andamento</div>
-          <div style="font-size:18px;font-weight:600;color:#BA7517">${abertos}</div>
-        </div>
-        <div style="background:var(--g3);border-radius:6px;padding:8px;text-align:center">
-          <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Perdidos</div>
-          <div style="font-size:18px;font-weight:600;color:#F62642">${perdidos}</div>
-        </div>
-      </div>`;
+    agendorCard.innerHTML = [
+      '<div class="sec-title" style="font-size:10px;margin-bottom:8px">CRM Agendor — '+_ml+'/'+anoAtual2+'</div>',
+      '<div style="position:relative;margin-bottom:10px">',
+        '<button onclick="var d=document.getElementById('agendor-dd');d.style.display=d.style.display==='block'?'none':'block'" style="width:100%;padding:5px 10px;border-radius:6px;border:1px solid var(--g2);background:var(--white);font-size:10px;color:var(--navy);font-family:Poppins,sans-serif;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center"><span>'+selectedLabel+'</span><span>▾</span></button>',
+        '<div id="agendor-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--g2);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:100;max-height:180px;overflow-y:auto;margin-top:2px">'+cbItems+'</div>',
+      '</div>',
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">',
+        '<div style="background:var(--g3);border-radius:6px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--g2);margin-bottom:2px">Novos negócios</div><div style="font-size:22px;font-weight:600;color:#0C7488">'+total+'</div></div>',
+        '<div style="background:var(--g3);border-radius:6px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--g2);margin-bottom:2px">Ganhos</div><div style="font-size:22px;font-weight:600;color:#1a7a3a">'+ganhos+'</div></div>',
+      '</div>',
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">',
+        '<div style="background:var(--g3);border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:var(--g2);margin-bottom:2px">Em andamento</div><div style="font-size:18px;font-weight:600;color:#BA7517">'+abertos+'</div></div>',
+        '<div style="background:var(--g3);border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:var(--g2);margin-bottom:2px">Perdidos</div><div style="font-size:18px;font-weight:600;color:#F62642">'+perdidos+'</div></div>',
+      '</div>'
+    ].join('');
   }
 
   // Seleção de funil via select múltiplo
