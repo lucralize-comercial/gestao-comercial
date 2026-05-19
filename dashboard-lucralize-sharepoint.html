@@ -555,6 +555,7 @@ const HIST={
 };
 
 let accessToken=null, rawContab=[], rawTech=[], charts={};
+let _agendorAllDeals=[], _agendorFunisSel=[];
 
 // AUTH
 function generateVerifier(){const a=new Uint8Array(32);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
@@ -2035,7 +2036,6 @@ function renderShare() {
   // ─── Agendor CRM ───
   const AGENDOR_PROXY = 'https://agendo-proxy-production.up.railway.app';
   const agendorCard = document.getElementById('share-agendor-card');
-  let _agendorAllDeals = [];
 
   function renderAgendorCard(deals, funisSelecionados) {
     const now2 = new Date();
@@ -2096,7 +2096,6 @@ function renderShare() {
   }
 
   // Seleção de funil via select múltiplo
-  let _agendorFunisSel = [];
   window._agendorSelectFunil = function(sel) {
     _agendorFunisSel = sel.value ? [sel.value] : [];
     renderAgendorCard(_agendorAllDeals, _agendorFunisSel);
