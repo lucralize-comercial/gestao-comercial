@@ -184,7 +184,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       <button class="tab-btn" onclick="setTab('cont',this)">📋 Contabilidade</button>
       <button class="tab-btn" onclick="setTab('crescimento',this)">🚀 Nosso Crescimento</button>
       <button class="tab-btn" onclick="setTab('share',this)">📤 Compartilhar</button>
-      <button class="tab-btn" id="btn-collapse" onclick="toggleHeader()" style="margin-left:auto;opacity:.7;font-size:11px">⬆ Recolher</button>
+      <button class="tab-btn" id="btn-collapse" onclick="toggleHeader()" style="margin-left:8px;opacity:.8;font-size:11px;letter-spacing:0">↑ Recolher</button>
     </div>
   </header>
 
@@ -2108,10 +2108,35 @@ function renderShare() {
       .then(result=>{
         _agendorAllDeals = result.data||[];
         renderAgendorCard(_agendorAllDeals, _agendorFunisSel);
+        // Atualiza apenas as linhas de ganhos no gráfico semanal já existente
+        updateAgendorWeeklyLines();
       })
       .catch(()=>{
         if(agendorCard) agendorCard.innerHTML = '<div class="sec-title" style="font-size:10px;margin-bottom:8px">CRM — Agendor</div><div style="font-size:11px;color:var(--g2);text-align:center;padding:16px 0">⚠ Não foi possível conectar</div>';
       });
+  }
+
+  // Atualiza as linhas de Ganhos no gráfico semanal sem recriar tudo
+  function updateAgendorWeeklyLines() {
+    const chart = charts['c-share-semanal'];
+    if(!chart || !_agendorAllDeals.length) return;
+    function isContab2(d){ return (d.products||[]).some(p=>(p.name||'').toLowerCase().includes('contabilidade')); }
+    function isTech2(d){   return (d.products||[]).some(p=>(p.name||'').toLowerCase().includes('tech')); }
+    function countWon(deals, filterFn) {
+      const counts = {};
+      semanasKeys.forEach(k=>counts[k]=0);
+      deals.filter(d=>d.dealStatus?.id===2 && filterFn(d)).forEach(d=>{
+        const raw=d.createdAt; if(!raw) return;
+        let dt; try{dt=new Date(raw);if(isNaN(dt))return;}catch{return;}
+        if(dt<_3mAgo||dt>_now3) return;
+        const k=getWeekKey(dt); if(k in counts) counts[k]++;
+      });
+      return semanasKeys.map(k=>counts[k]);
+    }
+    // datasets 4 e 5 são Ganhos Contab e Ganhos Tech
+    chart.data.datasets[4].data = countWon(_agendorAllDeals, isContab2);
+    chart.data.datasets[5].data = countWon(_agendorAllDeals, isTech2);
+    chart.update();
   }
 }
 
