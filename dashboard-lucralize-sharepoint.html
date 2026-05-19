@@ -2052,15 +2052,20 @@ function renderShare() {
     const todosOsFunis=[...new Set(deals.map(d=>d.dealStage?.funnel?.name).filter(Boolean))].sort();
     const selectedLabel=funisSelecionados.length===0?'Todos os funis':funisSelecionados.length===1?funisSelecionados[0]:funisSelecionados.length+' funis selecionados';
 
-    const cbItems = ['<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--g1);border-bottom:1px solid var(--g3)" onmouseover="this.style.background='var(--g3)'" onmouseout="this.style.background='transparent'"><input type="checkbox" '+(funisSelecionados.length===0?'checked':'')+' onchange="window._agendorSelectAll(this)" style="accent-color:#0C7488;cursor:pointer"> Todos os funis</label>',
-      ...todosOsFunis.map(f=>'<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--navy)" onmouseover="this.style.background='var(--g3)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="'+f+'" '+(funisSelecionados.includes(f)?'checked':'')+' onchange="window._agendorToggleCheck(this)" style="accent-color:#0C7488;cursor:pointer"> '+f+'</label>')
-    ].join('');
+    const _bg = 'var(--g3)', _tr = 'transparent';
+    const cbAll = '<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--g1);border-bottom:1px solid var(--g3)" onmouseover="this.style.background=\''+_bg+'\'" onmouseout="this.style.background=\''+_tr+'\'">'
+      +'<input type="checkbox" '+(funisSelecionados.length===0?'checked':'')+' onchange="window._agendorSelectAll(this)" style="accent-color:#0C7488;cursor:pointer"> Todos os funis</label>';
+    const cbFunis = todosOsFunis.map(f=>{
+      const chk = funisSelecionados.includes(f)?'checked':'';
+      return '<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--navy)" onmouseover="this.style.background=\''+_bg+'\'" onmouseout="this.style.background=\''+_tr+'\'"><input type="checkbox" value="'+f+'" '+chk+' onchange="window._agendorToggleCheck(this)" style="accent-color:#0C7488;cursor:pointer"> '+f+'</label>';
+    }).join('');
+    const cbItems = cbAll + cbFunis;
 
     if(!agendorCard) return;
     agendorCard.innerHTML = [
       '<div class="sec-title" style="font-size:10px;margin-bottom:8px">CRM Agendor — '+_ml+'/'+anoAtual2+'</div>',
       '<div style="position:relative;margin-bottom:10px">',
-        '<button onclick="var d=document.getElementById('agendor-dd');d.style.display=d.style.display==='block'?'none':'block'" style="width:100%;padding:5px 10px;border-radius:6px;border:1px solid var(--g2);background:var(--white);font-size:10px;color:var(--navy);font-family:Poppins,sans-serif;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center"><span>'+selectedLabel+'</span><span>▾</span></button>',
+        '<button onclick="window._agendorToggleDD()" style="width:100%;padding:5px 10px;border-radius:6px;border:1px solid var(--g2);background:var(--white);font-size:10px;color:var(--navy);font-family:Poppins,sans-serif;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center"><span>'+selectedLabel+'</span><span>▾</span></button>',
         '<div id="agendor-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--g2);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:100;max-height:180px;overflow-y:auto;margin-top:2px">'+cbItems+'</div>',
       '</div>',
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">',
@@ -2075,6 +2080,10 @@ function renderShare() {
   }
 
   // Seleção de funil via select múltiplo
+  window._agendorToggleDD = function() {
+    const d = document.getElementById('agendor-dd');
+    if(d) d.style.display = d.style.display==='block' ? 'none' : 'block';
+  };
   window._agendorToggleCheck = function(cb) {
     if(cb.checked) { if(!_agendorFunisSel.includes(cb.value)) _agendorFunisSel.push(cb.value); }
     else { _agendorFunisSel = _agendorFunisSel.filter(f=>f!==cb.value); }
