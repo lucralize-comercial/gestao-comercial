@@ -1925,7 +1925,7 @@ function renderShare() {
 
   // ─── 3 Cards extras: Saldo do mês, Top motivos, Ritmo necessário ───
   const extraEl = document.getElementById('share-extra-cards');
-  if(extraEl) {
+  if(extraEl) { try {
     const _mesAtualLabel = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][new Date().getMonth()];
     const _anoAtual = new Date().getFullYear();
 
@@ -2005,6 +2005,7 @@ function renderShare() {
         <div style="display:flex;flex-direction:column;gap:8px">${_motivosHTML||'<div style="color:var(--g2);font-size:12px">Sem dados</div>'}</div>
       </div>
 
+      } catch(e) { console.error('Erro nos cards extras:', e); extraEl.innerHTML='<div style="color:red;font-size:11px;padding:10px">Erro: '+e.message+'</div>'; }
       <div class="card" style="padding:14px" id="share-agendor-card">
         <div class="sec-title" style="font-size:10px;margin-bottom:10px">CRM — Agendor</div>
         <div style="font-size:11px;color:var(--g2);text-align:center;padding:20px 0">Carregando...</div>
