@@ -47,7 +47,11 @@ header.collapsed .hdr-inner,header.collapsed .tabs{display:none}
 #btn-logout:hover{color:var(--red)}
 
 /* TABS */
-.tabs{display:flex;gap:3px;padding:0 24px;background:var(--navy);overflow-x:auto}
+.tabs{display:flex;gap:3px;padding:0 24px;background:var(--navy);overflow-x:auto;align-items:center}
+header{transition:all .2s}
+header.collapsed .hdr-top{display:none}
+header.collapsed .tabs .tab-btn:not(#btn-collapse){display:none}
+header.collapsed .tabs{padding:4px 24px}
 .tab-btn{font-family:'Poppins',sans-serif;font-size:12px;font-weight:500;color:var(--g2);background:none;border:none;padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-3px;transition:all .15s;white-space:nowrap}
 .tab-btn:hover{color:var(--teal-l)}
 .tab-btn.active{color:var(--teal-l);border-bottom-color:var(--teal-l)}
@@ -180,6 +184,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       <button class="tab-btn" onclick="setTab('cont',this)">📋 Contabilidade</button>
       <button class="tab-btn" onclick="setTab('crescimento',this)">🚀 Nosso Crescimento</button>
       <button class="tab-btn" onclick="setTab('share',this)">📤 Compartilhar</button>
+      <button class="tab-btn" id="btn-collapse" onclick="toggleHeader()" style="margin-left:auto;opacity:.7;font-size:11px">⬆ Recolher</button>
     </div>
   </header>
 
@@ -555,14 +560,24 @@ let accessToken=null, rawContab=[], rawTech=[], charts={};
 function generateVerifier(){const a=new Uint8Array(32);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
 async function generateChallenge(v){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
 async function signIn(){const v=generateVerifier(),c=await generateChallenge(v),s=btoa(Math.random().toString());sessionStorage.setItem('pkce_v',v);sessionStorage.setItem('oauth_s',s);const p=new URLSearchParams({client_id:CONFIG.clientId,response_type:'code',redirect_uri:CONFIG.redirectUri,response_mode:'fragment',scope:SCOPES.join(' '),state:s,code_challenge:c,code_challenge_method:'S256'});window.location.href=`${AUTHORITY}/oauth2/v2.0/authorize?${p}`;}
-function signOut(){accessToken=null;sessionStorage.clear();window.location.href=`${AUTHORITY}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(CONFIG.redirectUri)}`;}
+function signOut(){accessToken=null;sessionStorage.clear();localStorage.removeItem('at');localStorage.removeItem('at_exp');window.location.href=`${AUTHORITY}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(CONFIG.redirectUri)}`;}
 async function exchangeCode(code){const body=new URLSearchParams({client_id:CONFIG.clientId,grant_type:'authorization_code',code,redirect_uri:CONFIG.redirectUri,code_verifier:sessionStorage.getItem('pkce_v')});const r=await fetch(`${AUTHORITY}/oauth2/v2.0/token`,{method:'POST',body,headers:{'Content-Type':'application/x-www-form-urlencoded'}});const d=await r.json();if(d.error)throw new Error(d.error_description);return d.access_token;}
 
 // GRAPH
 async function graphGet(url){const r=await fetch(`https://graph.microsoft.com/v1.0${url}`,{headers:{Authorization:`Bearer ${accessToken}`}});if(!r.ok)throw new Error(`Graph API error: ${r.status} ${url}`);return r.json();}
 async function getSiteId(siteUrl){return(await graphGet(`/sites/${siteUrl}`)).id;}
 async function getListItems(siteId,listName){let items=[],url=`/sites/${siteId}/lists/${encodeURIComponent(listName)}/items?expand=fields&$top=999`;while(url){const d=await graphGet(url);items=items.concat(d.value||[]);url=d['@odata.nextLink']?d['@odata.nextLink'].replace('https://graph.microsoft.com/v1.0',''):null;}return items.map(i=>i.fields||{});}
-async function loadAll(){showLoading(true);hideErr();try{const me=await graphGet('/me');setUserUI(me);const sIdC=await getSiteId(CONFIG.contabilidade.siteUrl);rawContab=await getListItems(sIdC,CONFIG.contabilidade.listName);const sIdT=await getSiteId(CONFIG.tech.siteUrl);rawTech=await getListItems(sIdT,CONFIG.tech.listName);document.getElementById('last-upd').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});applyFilters();}catch(e){showErr('Erro ao carregar dados: '+e.message);}finally{showLoading(false);}}
+async function loadAll(){
+  // Verifica se o token ainda é válido
+  const exp = parseInt(localStorage.getItem('at_exp')||'0');
+  if(Date.now() >= exp){
+    localStorage.removeItem('at'); localStorage.removeItem('at_exp');
+    document.getElementById('app').style.display='none';
+    document.getElementById('login-screen').style.display='flex';
+    showLoginErr('Sessão expirada. Por favor, faça login novamente.');
+    return;
+  }
+  showLoading(true);hideErr();try{const me=await graphGet('/me');setUserUI(me);const sIdC=await getSiteId(CONFIG.contabilidade.siteUrl);rawContab=await getListItems(sIdC,CONFIG.contabilidade.listName);const sIdT=await getSiteId(CONFIG.tech.siteUrl);rawTech=await getListItems(sIdT,CONFIG.tech.listName);document.getElementById('last-upd').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});applyFilters();}catch(e){showErr('Erro ao carregar dados: '+e.message);}finally{showLoading(false);}}
 
 // FIELD HELPERS
 function fv(r,...keys){for(const k of keys)if(r[k]!==undefined&&r[k]!==null&&r[k]!=='')return String(r[k]);return'';}
@@ -1815,6 +1830,8 @@ function renderShare() {
         <span style="display:flex;align-items:center;gap:4px"><span style="width:16px;height:2px;background:#91DBE4;display:inline-block"></span>Ent Tech</span>
         <span style="display:flex;align-items:center;gap:4px"><svg width="16" height="6" style="flex-shrink:0"><line x1="0" y1="3" x2="16" y2="3" stroke="#F62642" stroke-width="2" stroke-dasharray="4,2"/></svg>Saí Contab</span>
         <span style="display:flex;align-items:center;gap:4px"><svg width="16" height="6" style="flex-shrink:0"><line x1="0" y1="3" x2="16" y2="3" stroke="#BA7517" stroke-width="2" stroke-dasharray="4,2"/></svg>Saí Tech</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#1a7a3a;border-radius:50%;display:inline-block"></span>Ganhos Contab</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#5cb85c;border-radius:50%;display:inline-block"></span>Ganhos Tech</span>
       </div>
       <div class="cw" style="height:260px"><canvas id="c-share-semanal"></canvas></div>
     </div>`;
@@ -1869,14 +1886,33 @@ function renderShare() {
   const wSaiC = countByWeek(rawContab, getSaidaDate_contab);
   const wSaiT = countByWeek(rawTech, getSaidaDate_tech);
 
+  // Ganhos Agendor por semana (Tech e Contab via produto)
+  function isContabDeal(d){ return (d.products||[]).some(p=>(p.name||'').toLowerCase().includes('contabilidade')); }
+  function isTechDeal(d){   return (d.products||[]).some(p=>(p.name||'').toLowerCase().includes('tech')); }
+  function countAgendorByWeek(deals, filterFn) {
+    const counts = {};
+    semanasKeys.forEach(k=>counts[k]=0);
+    deals.filter(d=>d.dealStatus?.id===2 && filterFn(d)).forEach(d=>{
+      const raw=d.createdAt; if(!raw) return;
+      let dt; try{dt=new Date(raw);if(isNaN(dt))return;}catch{return;}
+      if(dt<_3mAgo||dt>_now3) return;
+      const k=getWeekKey(dt); if(k in counts) counts[k]++;
+    });
+    return semanasKeys.map(k=>counts[k]);
+  }
+  const wGanhoC = countAgendorByWeek(_agendorAllDeals, isContabDeal);
+  const wGanhoT = countAgendorByWeek(_agendorAllDeals, isTechDeal);
+
   destroyChart('c-share-semanal');
   const ctxW = document.getElementById('c-share-semanal');
   if(ctxW) {
     charts['c-share-semanal'] = new Chart(ctxW, {type:'line', data:{labels:semanas3m, datasets:[
-      {label:'Ent Contab', data:wEntC, borderColor:'#0C7488', backgroundColor:'rgba(12,116,136,0.06)', borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:0.3, fill:true},
-      {label:'Ent Tech',   data:wEntT, borderColor:'#91DBE4', backgroundColor:'rgba(145,219,228,0.06)', borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:0.3, fill:true},
-      {label:'Saí Contab', data:wSaiC, borderColor:'#F62642', backgroundColor:'transparent', borderWidth:1.5, borderDash:[4,2], pointRadius:3, pointHoverRadius:5, tension:0.3},
-      {label:'Saí Tech',   data:wSaiT, borderColor:'#BA7517', backgroundColor:'transparent', borderWidth:1.5, borderDash:[4,2], pointRadius:3, pointHoverRadius:5, tension:0.3},
+      {label:'Ent Contab',   data:wEntC,   borderColor:'#0C7488', backgroundColor:'rgba(12,116,136,0.06)', borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:0.3, fill:true},
+      {label:'Ent Tech',     data:wEntT,   borderColor:'#91DBE4', backgroundColor:'rgba(145,219,228,0.06)', borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:0.3, fill:true},
+      {label:'Saí Contab',   data:wSaiC,   borderColor:'#F62642', backgroundColor:'transparent', borderWidth:1.5, borderDash:[4,2], pointRadius:3, pointHoverRadius:5, tension:0.3},
+      {label:'Saí Tech',     data:wSaiT,   borderColor:'#BA7517', backgroundColor:'transparent', borderWidth:1.5, borderDash:[4,2], pointRadius:3, pointHoverRadius:5, tension:0.3},
+      {label:'Ganhos Contab',data:wGanhoC, borderColor:'#1a7a3a', backgroundColor:'transparent', borderWidth:2, pointRadius:4, pointHoverRadius:6, tension:0.3, pointStyle:'star'},
+      {label:'Ganhos Tech',  data:wGanhoT, borderColor:'#5cb85c', backgroundColor:'transparent', borderWidth:2, pointRadius:4, pointHoverRadius:6, tension:0.3, pointStyle:'star'},
     ]}, options:{responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index', intersect:false},
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}`}}},
@@ -2024,7 +2060,7 @@ function renderShare() {
     // Funis disponíveis para o filtro
     const todosOsFunis = [...new Set(deals.map(d=>d.dealStage?.funnel?.name).filter(Boolean))].sort();
     const funisOptions = todosOsFunis.map(f =>
-      `<option value="${f}" ${funisSelecionados.includes(f)?'selected':''}>${f}</option>`
+      `<option value="${f}" ${funisSelecionados.length===1&&funisSelecionados[0]===f?'selected':''}>${f}</option>`
     ).join('');
 
     if(!agendorCard) return;
@@ -2032,8 +2068,9 @@ function renderShare() {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div class="sec-title" style="font-size:10px;margin-bottom:0">CRM Agendor — ${_ml}/${anoAtual2}</div>
       </div>
-      <select id="agendor-funil-select" multiple onchange="window._agendorSelectFunil(this)"
-        style="width:100%;padding:4px 6px;border-radius:6px;border:1px solid var(--g2);background:var(--white);font-size:10px;color:var(--navy);margin-bottom:10px;font-family:Poppins,sans-serif;max-height:60px">
+      <select id="agendor-funil-select" onchange="window._agendorSelectFunil(this)"
+        style="width:100%;padding:4px 6px;border-radius:6px;border:1px solid var(--g2);background:var(--white);font-size:10px;color:var(--navy);margin-bottom:10px;font-family:Poppins,sans-serif">
+        <option value="">Todos os funis</option>
         ${funisOptions}
       </select>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
@@ -2061,7 +2098,7 @@ function renderShare() {
   // Seleção de funil via select múltiplo
   let _agendorFunisSel = [];
   window._agendorSelectFunil = function(sel) {
-    _agendorFunisSel = Array.from(sel.selectedOptions).map(o=>o.value);
+    _agendorFunisSel = sel.value ? [sel.value] : [];
     renderAgendorCard(_agendorAllDeals, _agendorFunisSel);
   };
 
@@ -2086,21 +2123,44 @@ function showApp(){document.getElementById('login-screen').style.display='none';
 function showLoginErr(msg){const e=document.createElement('div');e.style.cssText='color:#F62642;font-size:12px;margin-top:10px;text-align:center';e.textContent=msg;document.querySelector('.login-card').appendChild(e);}
 
 // BOOT
+const TOKEN_TTL = 4 * 60 * 60 * 1000; // 4 horas em ms
+
+function saveToken(token) {
+  localStorage.setItem('at', token);
+  localStorage.setItem('at_exp', Date.now() + TOKEN_TTL);
+}
+
+function loadToken() {
+  const token = localStorage.getItem('at');
+  const exp = parseInt(localStorage.getItem('at_exp')||'0');
+  if (token && Date.now() < exp) return token;
+  localStorage.removeItem('at');
+  localStorage.removeItem('at_exp');
+  return null;
+}
+
 async function boot(){
   const hash=window.location.hash.substring(1),params=new URLSearchParams(hash),code=params.get('code');
   if(params.get('error')){showLoginErr('Erro no login: '+params.get('error_description'));return;}
-  if(code){history.replaceState(null,'',window.location.pathname);try{accessToken=await exchangeCode(code);sessionStorage.setItem('at',accessToken);showApp();await loadAll();}catch(e){showLoginErr('Falha: '+e.message);}return;}
-  const stored=sessionStorage.getItem('at');
+  if(code){
+    history.replaceState(null,'',window.location.pathname);
+    try{
+      accessToken=await exchangeCode(code);
+      saveToken(accessToken);
+      showApp();await loadAll();
+    }catch(e){showLoginErr('Falha: '+e.message);}
+    return;
+  }
+  const stored=loadToken();
   if(stored){accessToken=stored;showApp();await loadAll();}
 }
 boot();
 
 function toggleHeader() {
-  const header = document.getElementById('main-header');
-  const btn = document.getElementById('collapse-btn');
+  const header = document.querySelector('header');
+  const btn = document.getElementById('btn-collapse');
   const collapsed = header.classList.toggle('collapsed');
-  btn.textContent = collapsed ? '▼' : '▲';
-  btn.title = collapsed ? 'Expandir menu' : 'Recolher menu';
+  btn.textContent = collapsed ? '⬇ Expandir' : '⬆ Recolher';
 }
 </script>
 </body>
