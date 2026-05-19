@@ -81,6 +81,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
 /* PROGRESS BAR */
 .progress-wrap{margin-top:5px}
 .progress-bar{height:5px;background:var(--g3);border-radius:3px;overflow:hidden}
+#agendor-funil-dropdown.open{display:block!important}
 .progress-fill{height:100%;border-radius:3px;transition:width .4s}
 .progress-pct{font-size:10px;color:var(--g1);margin-top:2px}
 
@@ -2059,20 +2060,42 @@ function renderShare() {
 
     // Funis disponíveis para o filtro
     const todosOsFunis = [...new Set(deals.map(d=>d.dealStage?.funnel?.name).filter(Boolean))].sort();
-    const funisOptions = todosOsFunis.map(f =>
-      `<option value="${f}" ${funisSelecionados.length===1&&funisSelecionados[0]===f?'selected':''}>${f}</option>`
-    ).join('');
+    const funisCheckboxes = todosOsFunis.map(f => {
+      const checked = funisSelecionados.includes(f);
+      return `<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--navy);border-radius:4px;transition:background .15s" onmouseover="this.style.background='var(--g3)'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" value="${f}" ${checked?'checked':''} onchange="window._agendorToggleCheck(this)" style="accent-color:#0C7488;cursor:pointer">
+        ${f}
+      </label>`;
+    }).join('');
+
+    const selectedLabel = funisSelecionados.length===0 ? 'Todos os funis' : funisSelecionados.length===1 ? funisSelecionados[0] : funisSelecionados.length+' funis selecionados';
 
     if(!agendorCard) return;
     agendorCard.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div class="sec-title" style="font-size:10px;margin-bottom:0">CRM Agendor — ${_ml}/${anoAtual2}</div>
       </div>
-      <select id="agendor-funil-select" onchange="window._agendorSelectFunil(this)"
-        style="width:100%;padding:4px 6px;border-radius:6px;border:1px solid var(--g2);background:var(--white);font-size:10px;color:var(--navy);margin-bottom:10px;font-family:Poppins,sans-serif">
-        <option value="">Todos os funis</option>
-        ${funisOptions}
-      </select>
+      <div style="position:relative;margin-bottom:10px">
+        <button onclick="document.getElementById('agendor-funil-dropdown').classList.toggle('open')"
+          style="width:100%;padding:5px 10px;border-radius:6px;border:1px solid var(--g2);background:var(--white);font-size:10px;color:var(--navy);font-family:Poppins,sans-serif;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center">
+          <span>${selectedLabel}</span><span style="color:var(--g2)">▾</span>
+        </button>
+        <div id="agendor-funil-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--g2);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:100;max-height:180px;overflow-y:auto;margin-top:2px">
+          <label style="display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:var(--g1);border-bottom:1px solid var(--g3);border-radius:4px" onmouseover="this.style.background='var(--g3)'" onmouseout="this.style.background='transparent'">
+            <input type="checkbox" id="agendor-all-check" ${funisSelecionados.length===0?'checked':''} onchange="window._agendorSelectAll(this)" style="accent-color:#0C7488;cursor:pointer">
+            Todos os funis
+          </label>
+          ${funisCheckboxes}
+        </div>
+      </div>`;
+
+    // Close dropdown when clicking outside
+    setTimeout(()=>{
+      document.addEventListener('click', function closeDD(e){
+        const dd=document.getElementById('agendor-funil-dropdown');
+        if(dd&&!dd.closest('.card').contains(e.target)){dd.style.display='none';document.removeEventListener('click',closeDD);}
+      });
+    },0);
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div style="background:var(--g3);border-radius:6px;padding:10px;text-align:center">
           <div style="font-size:10px;color:var(--g2);margin-bottom:2px">Novos negócios</div>
@@ -2096,8 +2119,13 @@ function renderShare() {
   }
 
   // Seleção de funil via select múltiplo
-  window._agendorSelectFunil = function(sel) {
-    _agendorFunisSel = sel.value ? [sel.value] : [];
+  window._agendorToggleCheck = function(cb) {
+    if(cb.checked) { if(!_agendorFunisSel.includes(cb.value)) _agendorFunisSel.push(cb.value); }
+    else { _agendorFunisSel = _agendorFunisSel.filter(f=>f!==cb.value); }
+    renderAgendorCard(_agendorAllDeals, _agendorFunisSel);
+  };
+  window._agendorSelectAll = function(cb) {
+    _agendorFunisSel = [];
     renderAgendorCard(_agendorAllDeals, _agendorFunisSel);
   };
 
