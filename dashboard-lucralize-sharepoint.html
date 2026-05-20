@@ -604,9 +604,9 @@ function getSituacaoSnapshot(r, getS, ate) {
 function getRegime(r){return fv(r,'Regime_x0020_Tribut_x00e1_rio_x0020_Ano_x0020_Atual','RegimeTributarioAnoAtual','RegimeTribut_x00e1_rioAnoAtual');}
 function safeYM(val){if(!val)return null;const s=String(val).trim();if(s.includes('/')){const p=s.split('/');if(p.length===2&&p[1].length===4)return`${p[1]}-${p[0].padStart(2,'0')}`;}if(s.match(/^\d{4}-\d{2}/))return s.substring(0,7);return null;}
 function getEntradaYM_contab(r){const v=fv(r,'DatadoContrato','Data_x0020_do_x0020_Contrato','DataDoContrato');if(!v)return null;try{const d=new Date(v);if(!isNaN(d))return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}catch{}return safeYM(v);}
-function getSaidaYM_contab(r){return safeYM(fv(r,'Compet_x00ea_nciadeSa_x00ed_da','Compet_x00ea_nciadeSa_x00ed_a'));}
+function getSaidaYM_contab(r){const sit=getSituacao(r);if(sit!=='INATIVO'&&sit!=='BAIXADA')return null;return safeYM(fv(r,'Compet_x00ea_nciadeSa_x00ed_da','Compet_x00ea_nciadeSa_x00ed_a'));}
 function getEntradaYM_tech(r){const f=fv(r,'field_11','Compet_x00ea_ncia','Competência');if(f)return safeYM(f);if(r.Created){try{const d=new Date(r.Created);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}catch{}}return null;}
-function getSaidaYM_tech(r){const f=r['field_26'];if(!f)return null;const s=String(f).trim();if(/^\d{2}\/\d{4}$/.test(s))return safeYM(s);return null;}
+function getSaidaYM_tech(r){const sit=getSituacao(r);if(sit!=='INATIVO'&&sit!=='BAIXADA')return null;const f=r['field_26'];if(!f)return null;const s=String(f).trim();if(/^\d{2}\/\d{4}$/.test(s))return safeYM(s);return null;}
 function getEstado(r){const raw=fv(r,'Estado','field_7','estado');const map={'PARÁ':'PA','RIO DE JANEIRO':'RJ','NITEROI':'RJ','SÃO PAULO':'SP','MINAS GERAIS':'MG'};const s=raw.trim().toUpperCase();return map[s]||s||'N/D';}
 const REGIOES={'AC':'Norte','AM':'Norte','AP':'Norte','PA':'Norte','RO':'Norte','RR':'Norte','TO':'Norte','AL':'Nordeste','BA':'Nordeste','CE':'Nordeste','MA':'Nordeste','PB':'Nordeste','PE':'Nordeste','PI':'Nordeste','RN':'Nordeste','SE':'Nordeste','DF':'Centro-Oeste','GO':'Centro-Oeste','MS':'Centro-Oeste','MT':'Centro-Oeste','ES':'Sudeste','MG':'Sudeste','RJ':'Sudeste','SP':'Sudeste','PR':'Sul','RS':'Sul','SC':'Sul'};
 function getRegiao(e){return REGIOES[e]||'Outros';}
@@ -914,6 +914,11 @@ function renderMVR(containerId, items) {
     const cor = item.inverso ? (p <= metaIdeal ? '#2ecc71' : '#F62642') : pctColor(p);
     const corIdeal='#AAB8C2';
     const labelReal = item.inverso ? (p <= metaIdeal ? '✓ Dentro do limite' : '⚠ Acima do limite') : null;
+    // Sufixo (crescReal/crescPlaneado) apenas quando há base definida e não é métrica inversa
+    const pSuffix = (item.base !== undefined && !item.inverso && crescPlaneado > 0)
+      ? ' ('+Math.round(Math.max(0,crescReal))+'/'+crescPlaneado+')' : '';
+    const idealSuffix = (item.base !== undefined && !item.inverso && crescPlaneado > 0 && item.metaAcum)
+      ? ' ('+Math.round(Math.max(0,item.metaAcum[_mesAtual]-item.base))+'/'+crescPlaneado+')' : '';
 
     return`<div class="mvr-card">
       <div class="mvr-title">${item.title}</div>
@@ -928,11 +933,11 @@ function renderMVR(containerId, items) {
       <div class="progress-wrap">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
           <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${p}%;background:${cor}"></div></div>
-          <span style="font-size:10px;color:${cor};min-width:32px;text-align:right">${p}%</span>
+          <span style="font-size:10px;color:${cor};min-width:56px;text-align:right">${p}%${pSuffix}</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
           <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${metaIdeal}%;background:${corIdeal}"></div></div>
-          <span style="font-size:10px;color:${corIdeal};min-width:32px;text-align:right">${metaIdeal}%</span>
+          <span style="font-size:10px;color:${corIdeal};min-width:56px;text-align:right">${metaIdeal}%${idealSuffix}</span>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:10px">
           <span style="color:${cor}">${labelReal||'● Realizado'}</span>
@@ -966,6 +971,8 @@ function renderGeral(fc,ft,de,ate){
   const periodos2026=filtPeriods.filter(p=>p>='2026-01');
   const entradas2026Acum = periodos2026.reduce((sum,p) => sum + fc.filter(r=>getEntradaYM_contab(r)===p).length + ft.filter(r=>getEntradaYM_tech(r)===p).length, 0);
   const inativos=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='INATIVO').length+ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='INATIVO').length;
+  const suspensos=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='SUSPENSO').length+ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='SUSPENSO').length;
+  const emCancelamento=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='EM CANCELAMENTO').length+ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='EM CANCELAMENTO').length;
   const baixadas=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='BAIXADA').length+ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='BAIXADA').length;
 
   renderKPIs('kpi-geral',[
@@ -976,6 +983,8 @@ function renderGeral(fc,ft,de,ate){
     {label:'Entradas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
     {label:'Saídas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos'},
     {label:'Inativos Total',value:inativos,acc:'am',sub:'Aguardando reativação'},
+    {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
+    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída'},
     {label:'Baixadas Total',value:baixadas,acc:'nv',sub:'Empresas encerradas'},
   ]);
 
@@ -1127,6 +1136,8 @@ function renderTech(ft,de,ate){
   const ativos=ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='ATIVO');
   const rec=ativos.reduce((s,r)=>s+(parseFloat(fv(r,'Valor'))||0),0);
   const inativos=ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='INATIVO').length;
+  const suspensos=ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='SUSPENSO').length;
+  const emCancelamento=ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='EM CANCELAMENTO').length;
   const baixadas=ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='BAIXADA').length;
   const filtPeriodsT=de?ALL_PERIODS.filter(p=>p>=de&&p<=(ate||'9999')):ALL_PERIODS;
   const flowT=buildFlow(rawTech,getEntradaYM_tech,getSaidaYM_tech,filtPeriodsT);
@@ -1146,6 +1157,8 @@ function renderTech(ft,de,ate){
     {label:'Entradas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
     {label:'Saídas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos'},
     {label:'Inativos',value:inativos,acc:'am',sub:'Aguardando reativação'},
+    {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
+    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída'},
     {label:'Baixadas',value:baixadas,acc:'nv',sub:'Encerradas'},
   ]);
 
@@ -1202,6 +1215,8 @@ function renderContab(fc,de,ate){
   const ativos=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='ATIVO');
   const hon=ativos.reduce((s,r)=>s+(parseFloat(fv(r,'Honor_x00e1_rio','Honorário','Honorario'))||0),0);
   const inativos=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='INATIVO').length;
+  const suspensos=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='SUSPENSO').length;
+  const emCancelamento=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='EM CANCELAMENTO').length;
   const baixadas=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='BAIXADA').length;
   const filtPeriodsC=de?ALL_PERIODS.filter(p=>p>=de&&p<=(ate||'9999')):ALL_PERIODS;
   const flowC=buildFlow(rawContab,getEntradaYM_contab,getSaidaYM_contab,filtPeriodsC);
@@ -1221,6 +1236,8 @@ function renderContab(fc,de,ate){
     {label:'Entradas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
     {label:'Saídas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos'},
     {label:'Inativos',value:inativos,acc:'am',sub:'Aguardando reativação'},
+    {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
+    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída'},
     {label:'Baixadas',value:baixadas,acc:'nv',sub:'Encerradas'},
   ]);
 
