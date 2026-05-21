@@ -215,6 +215,10 @@ main{max-width:1400px;margin:0 auto;padding:18px}
     <select id="f-ate" onchange="applyFilters()" style="min-width:100px">
       <option value="">Até</option>
     </select>
+    <button class="btn-clear" onclick="setPeriod('cur-month')" title="Mês atual">Mês Atual</button>
+    <button class="btn-clear" onclick="setPeriod('prev-month')" title="Mês anterior">Mês Anterior</button>
+    <button class="btn-clear" onclick="setPeriod('cur-year')" title="Janeiro até mês atual">Ano Atual</button>
+    <button class="btn-clear" onclick="setPeriod('prev-year')" title="Janeiro a Dezembro do ano anterior">Ano Anterior</button>
     <button class="btn-clear" onclick="clearDateFilter()">✕ Limpar período</button>
   </div>
 
@@ -819,6 +823,21 @@ function initDateFilter() {
   filterAte = defaultAte;
 }
 
+function setPeriod(type) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const prevDate = new Date(y, now.getMonth()-1, 1);
+  const py = prevDate.getFullYear();
+  const pm = String(prevDate.getMonth()+1).padStart(2,'0');
+  const de = document.getElementById('f-de');
+  const ate = document.getElementById('f-ate');
+  if(type==='cur-month')  { de.value=`${y}-${m}`;   ate.value=`${y}-${m}`; }
+  if(type==='prev-month') { de.value=`${py}-${pm}`;  ate.value=`${py}-${pm}`; }
+  if(type==='cur-year')   { de.value=`${y}-01`;      ate.value=`${y}-${m}`; }
+  if(type==='prev-year')  { de.value=`${y-1}-01`;    ate.value=`${y-1}-12`; }
+  applyFilters();
+}
 function clearDateFilter() {
   document.getElementById('f-de').value = '';
   document.getElementById('f-ate').value = ALL_PERIODS[ALL_PERIODS.length-1];
