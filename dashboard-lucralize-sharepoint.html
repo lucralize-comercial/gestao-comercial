@@ -914,11 +914,15 @@ function renderMVR(containerId, items) {
     const cor = item.inverso ? (p <= metaIdeal ? '#2ecc71' : '#F62642') : pctColor(p);
     const corIdeal='#AAB8C2';
     const labelReal = item.inverso ? (p <= metaIdeal ? '✓ Dentro do limite' : '⚠ Acima do limite') : null;
-    // Sufixo (crescReal/crescPlaneado) apenas quando há base definida e não é métrica inversa
-    const pSuffix = (item.base !== undefined && !item.inverso && crescPlaneado > 0)
-      ? ' ('+Math.round(Math.max(0,crescReal))+'/'+crescPlaneado+')' : '';
-    const idealSuffix = (item.base !== undefined && !item.inverso && crescPlaneado > 0 && item.metaAcum)
-      ? ' ('+Math.round(Math.max(0,item.metaAcum[_mesAtual]-item.base))+'/'+crescPlaneado+')' : '';
+    // Sufixo (real/meta) para métricas normais com base, e (real/meta) para inversas
+    const pSuffix = item.inverso
+      ? ' ('+item.real+'/'+item.meta+')'
+      : (item.base !== undefined && crescPlaneado > 0)
+        ? ' ('+Math.round(Math.max(0,crescReal))+'/'+crescPlaneado+')' : '';
+    const idealSuffix = item.inverso
+      ? ' ('+Math.round(item.metaAcum?item.metaAcum[_mesAtual]:item.meta*((_mesAtual+1)/12))+'/'+item.meta+')'
+      : (item.base !== undefined && crescPlaneado > 0 && item.metaAcum)
+        ? ' ('+Math.round(Math.max(0,item.metaAcum[_mesAtual]-item.base))+'/'+crescPlaneado+')' : '';
 
     return`<div class="mvr-card">
       <div class="mvr-title">${item.title}</div>
