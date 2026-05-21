@@ -608,9 +608,9 @@ function getSituacaoSnapshot(r, getS, ate) {
 function getRegime(r){return fv(r,'Regime_x0020_Tribut_x00e1_rio_x0020_Ano_x0020_Atual','RegimeTributarioAnoAtual','RegimeTribut_x00e1_rioAnoAtual');}
 function safeYM(val){if(!val)return null;const s=String(val).trim();if(s.includes('/')){const p=s.split('/');if(p.length===2&&p[1].length===4)return`${p[1]}-${p[0].padStart(2,'0')}`;}if(s.match(/^\d{4}-\d{2}/))return s.substring(0,7);return null;}
 function getEntradaYM_contab(r){const v=fv(r,'DatadoContrato','Data_x0020_do_x0020_Contrato','DataDoContrato');if(!v)return null;try{const d=new Date(v);if(!isNaN(d))return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}catch{}return safeYM(v);}
-function getSaidaYM_contab(r){const sit=getSituacao(r);if(sit!=='INATIVO'&&sit!=='BAIXADA')return null;return safeYM(fv(r,'Compet_x00ea_nciadeSa_x00ed_da','Compet_x00ea_nciadeSa_x00ed_a'));}
+function getSaidaYM_contab(r){const sit=getSituacao(r);if(sit!=='INATIVO'&&sit!=='BAIXADA'&&sit!=='EM CANCELAMENTO')return null;return safeYM(fv(r,'Compet_x00ea_nciadeSa_x00ed_da','Compet_x00ea_nciadeSa_x00ed_a'));}
 function getEntradaYM_tech(r){const f=fv(r,'field_11','Compet_x00ea_ncia','Competência');if(f)return safeYM(f);if(r.Created){try{const d=new Date(r.Created);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}catch{}}return null;}
-function getSaidaYM_tech(r){const sit=getSituacao(r);if(sit!=='INATIVO'&&sit!=='BAIXADA')return null;const f=r['field_26'];if(!f)return null;const s=String(f).trim();if(/^\d{2}\/\d{4}$/.test(s))return safeYM(s);return null;}
+function getSaidaYM_tech(r){const sit=getSituacao(r);if(sit!=='INATIVO'&&sit!=='BAIXADA'&&sit!=='EM CANCELAMENTO')return null;const f=r['field_26'];if(!f)return null;const s=String(f).trim();if(/^\d{2}\/\d{4}$/.test(s))return safeYM(s);return null;}
 function getEstado(r){const raw=fv(r,'Estado','field_7','estado');const map={'PARÁ':'PA','RIO DE JANEIRO':'RJ','NITEROI':'RJ','SÃO PAULO':'SP','MINAS GERAIS':'MG'};const s=raw.trim().toUpperCase();return map[s]||s||'N/D';}
 const REGIOES={'AC':'Norte','AM':'Norte','AP':'Norte','PA':'Norte','RO':'Norte','RR':'Norte','TO':'Norte','AL':'Nordeste','BA':'Nordeste','CE':'Nordeste','MA':'Nordeste','PB':'Nordeste','PE':'Nordeste','PI':'Nordeste','RN':'Nordeste','SE':'Nordeste','DF':'Centro-Oeste','GO':'Centro-Oeste','MS':'Centro-Oeste','MT':'Centro-Oeste','ES':'Sudeste','MG':'Sudeste','RJ':'Sudeste','SP':'Sudeste','PR':'Sul','RS':'Sul','SC':'Sul'};
 function getRegiao(e){return REGIOES[e]||'Outros';}
@@ -1004,10 +1004,10 @@ function renderGeral(fc,ft,de,ate){
     {label:'MRR Consolidado',value:fmtBRL(mrr),acc:'tl',sub:'Honorários + mensalidades'},
     {label:'Ticket Médio Geral',value:fmtBRL(ativos?mrr/ativos:0),acc:'nv',sub:'Por cliente ativo'},
     {label:'Entradas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
-    {label:'Saídas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos'},
+    {label:'Saídas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos (Inativo, Baixada, Em Cancelamento)'},
     {label:'Inativos Total',value:inativos,acc:'am',sub:'Aguardando reativação'},
     {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
-    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída'},
+    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída, porém já contabilizados'},
     {label:'Baixadas Total',value:baixadas,acc:'nv',sub:'Empresas encerradas'},
   ]);
 
@@ -1178,10 +1178,10 @@ function renderTech(ft,de,ate){
     {label:'MRR',value:fmtBRL(rec),acc:'tl',sub:'Clientes ativos'},
     {label:'Ticket Médio',value:'R$ '+(ativos.length?Math.round(rec/ativos.length).toLocaleString('pt-BR'):'0'),acc:'nv',sub:'Por ativo'},
     {label:'Entradas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
-    {label:'Saídas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos'},
+    {label:'Saídas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos (Inativo, Baixada, Em Cancelamento)'},
     {label:'Inativos',value:inativos,acc:'am',sub:'Aguardando reativação'},
     {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
-    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída'},
+    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída, porém já contabilizados'},
     {label:'Baixadas',value:baixadas,acc:'nv',sub:'Encerradas'},
   ]);
 
@@ -1257,10 +1257,10 @@ function renderContab(fc,de,ate){
     {label:'Honorários/Mês',value:fmtBRL(hon),acc:'tl',sub:'Clientes ativos'},
     {label:'Ticket Médio',value:'R$ '+(ativos.length?Math.round(hon/ativos.length).toLocaleString('pt-BR'):'0'),acc:'nv',sub:'Por ativo'},
     {label:'Entradas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
-    {label:'Saídas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos'},
+    {label:'Saídas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos (Inativo, Baixada, Em Cancelamento)'},
     {label:'Inativos',value:inativos,acc:'am',sub:'Aguardando reativação'},
     {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
-    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída'},
+    {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída, porém já contabilizados'},
     {label:'Baixadas',value:baixadas,acc:'nv',sub:'Encerradas'},
   ]);
 
