@@ -184,6 +184,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       <button class="tab-btn" onclick="setTab('tech',this)">💻 Lucralize Tech</button>
       <button class="tab-btn" onclick="setTab('cont',this)">📋 Contabilidade</button>
       <button class="tab-btn" onclick="setTab('crescimento',this)">🚀 Nosso Crescimento</button>
+      <button class="tab-btn" onclick="setTab('migracao',this)">💳 Migração Pagamento</button>
       <button class="tab-btn" onclick="setTab('share',this)">📤 Compartilhar</button>
       <button class="tab-btn" id="btn-collapse" onclick="toggleHeader()" style="margin-left:8px;opacity:.8;font-size:11px;letter-spacing:0">↑ Recolher</button>
     </div>
@@ -462,6 +463,53 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       </div>
     </div>
 
+    <div class="section" id="sec-migracao">
+      <div class="sec-title">💳 Migração de Pagamento — Lucralize Tech</div>
+
+      <!-- CARDS DE STATUS -->
+      <div class="kpis" id="kpi-migracao"></div>
+
+      <!-- BARRA DE PROGRESSO GERAL -->
+      <div style="background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-weight:600;font-size:13px;color:var(--navy)">Progresso de Migração para Cartão de Crédito</span>
+          <span id="migr-pct" style="font-size:13px;font-weight:700;color:var(--teal)">0%</span>
+        </div>
+        <div style="background:var(--g3);border-radius:6px;height:14px;overflow:hidden">
+          <div id="migr-bar" style="height:100%;background:var(--teal);border-radius:6px;transition:width .4s;width:0%"></div>
+        </div>
+        <div id="migr-sub" style="font-size:11px;color:var(--g1);margin-top:6px">0 de 0 clientes ativos migrados</div>
+      </div>
+
+      <!-- FILTRO + LISTA -->
+      <div style="background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+          <span style="font-weight:600;font-size:13px;color:var(--navy)">Clientes Ativos</span>
+          <select id="migr-filtro" onchange="renderMigracao()" style="padding:5px 10px;border-radius:6px;border:1px solid var(--g2);font-size:12px;font-family:Poppins,sans-serif;color:var(--navy)">
+            <option value="">Todos</option>
+            <option value="Cartão de Crédito">✅ Cartão de Crédito</option>
+            <option value="Boleto">🔵 Boleto</option>
+            <option value="Acionar próximo mês">🟡 Acionar próximo mês</option>
+            <option value="Verificar se foi concretizado">🔍 Verificar se foi concretizado</option>
+            <option value="">⬜ Não definido</option>
+          </select>
+          <span id="migr-count" style="font-size:12px;color:var(--g1)"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:var(--g3);color:var(--navy)">
+                <th style="padding:8px 12px;text-align:left;font-weight:600;border-radius:6px 0 0 0">Cliente</th>
+                <th style="padding:8px 12px;text-align:left;font-weight:600">Plano</th>
+                <th style="padding:8px 12px;text-align:left;font-weight:600;border-radius:0 6px 0 0">Forma de Pagamento</th>
+              </tr>
+            </thead>
+            <tbody id="migr-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="section" id="sec-share">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
         <div style="font-family:'Comfortaa',cursive;font-size:16px;color:var(--navy);font-weight:700">📊 Resumo Executivo — Lucralize</div>
@@ -500,7 +548,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
 const CONFIG = {
   clientId:'c0868f3b-764c-4c5b-a9fc-4af4b6eb0baf',
   tenantId:'5173aa83-66e1-49f3-9128-f2251b43294d',
-  redirectUri:'https://lucralize-comercial.github.io/gestao-comercial/dashboard-lucralize-sharepoint.html',
+  redirectUri:'https://ronaldocassimiro.github.io/gestao-comercial/dashboard-lucralize-sharepoint.html',
   contabilidade:{siteUrl:'lucralize.sharepoint.com:/',listName:'Controle de Clientes'},
   tech:{siteUrl:'lucralize.sharepoint.com:/sites/LUCRALIZETECH',listName:'Base de Usuários'}
 };
@@ -934,15 +982,14 @@ function renderMVR(containerId, items) {
     const corIdeal='#AAB8C2';
     const labelReal = item.inverso ? (p <= metaIdeal ? '✓ Dentro do limite' : '⚠ Acima do limite') : null;
     // Sufixo (real/meta) para métricas normais com base, e (real/meta) para inversas
-    const fmt = item.fmtSuffix || (v=>v);
     const pSuffix = item.inverso
       ? ' ('+item.real+'/'+item.meta+')'
       : (item.base !== undefined && crescPlaneado > 0)
-        ? ' ('+fmt(Math.round(Math.max(0,crescReal)))+'/'+fmt(crescPlaneado)+')' : '';
+        ? ' ('+Math.round(Math.max(0,crescReal))+'/'+crescPlaneado+')' : '';
     const idealSuffix = item.inverso
       ? ' ('+Math.round(item.metaAcum?item.metaAcum[_mesAtual]:item.meta*((_mesAtual+1)/12))+'/'+item.meta+')'
       : (item.base !== undefined && crescPlaneado > 0 && item.metaAcum)
-        ? ' ('+fmt(Math.round(Math.max(0,item.metaAcum[_mesAtual]-item.base)))+'/'+fmt(crescPlaneado)+')' : '';
+        ? ' ('+Math.round(Math.max(0,item.metaAcum[_mesAtual]-item.base))+'/'+crescPlaneado+')' : '';
 
     return`<div class="mvr-card">
       <div class="mvr-title">${item.title}</div>
@@ -973,64 +1020,6 @@ function renderMVR(containerId, items) {
 }
 
 // RENDER GERAL
-// VALORES DE PLANO TECH (fallback quando campo Valor está vazio)
-const PLANO_VALORES = {'1':189,'2':259,'3':469};
-
-// Retorna o honorário de um cliente Tech: campo Valor ou fallback pelo plano
-function getHonorarioTech(r) {
-  const v = parseFloat(fv(r,'Valor'));
-  if (v && v > 0) return v;
-  const plano = fv(r,'Plano','PlanoLookupId');
-  return PLANO_VALORES[plano] || 0;
-}
-
-// Retorna o honorário de um cliente Contab
-function getHonorarioContab(r) {
-  return parseFloat(fv(r,'Honor_x00e1_rio','Honorário','Honorario')) || 0;
-}
-
-// Converte MM/AAAA para AAAA-MM
-function parsePeriodMMAA(s) {
-  if (!s) return null;
-  if (/^\d{4}-\d{2}$/.test(s)) return s;
-  const m = s.match(/^(\d{2})\/(\d{4})$/);
-  return m ? m[2]+'-'+m[1] : null;
-}
-
-// Calcula faturamento anual projetado 2026 para um array de registros
-// getE: função que retorna MM/AAAA de entrada
-// getS: função que retorna MM/AAAA de saída (ou null)
-// getH: função que retorna o honorário mensal do registro
-function calcFatAnual2026(arr, getE, getS, getH) {
-  const inicio2026 = '2026-01';
-  const fim2026    = '2026-12';
-  return arr.reduce((total, r) => {
-    const hon = getH(r);
-    if (!hon || hon <= 0) return total;
-    const entradaRaw = getE(r);
-    const saidaRaw   = getS(r);
-    const entrada = parsePeriodMMAA(entradaRaw);
-    const saida   = parsePeriodMMAA(saidaRaw);
-    // mês de início de contribuição em 2026
-    const mesInicio = entrada && entrada > inicio2026 ? entrada : inicio2026;
-    // mês de fim de contribuição em 2026
-    const mesFim = saida && saida < fim2026 ? saida : fim2026;
-    if (mesInicio > fim2026 || (saida && saida < inicio2026)) return total;
-    // conta meses inclusivos
-    const [yI, mI] = mesInicio.split('-').map(Number);
-    const [yF, mF] = mesFim.split('-').map(Number);
-    const meses = Math.max(0, (yF - yI) * 12 + (mF - mI) + 1);
-    return total + hon * meses;
-  }, 0);
-}
-
-// Calcula MRR atual (soma honorários de quem está ATIVO hoje)
-function calcMRRAtual(arr, getH) {
-  return arr
-    .filter(r => getSituacao(r) === 'ATIVO')
-    .reduce((s, r) => s + getH(r), 0);
-}
-
 function renderGeral(fc,ft,de,ate){
   const ativosC=fc.filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,ate)==='ATIVO');
   const ativosT=ft.filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,ate)==='ATIVO');
@@ -1044,15 +1033,11 @@ function renderGeral(fc,ft,de,ate){
   // KPI "Entradas/Saídas" usa o mês anterior ao "Até" selecionado (ou mês anterior ao atual se não houver filtro)
   const _ateVal = ate && ate !== '9999-12' ? ate : null;
   const _now=new Date();
-  const _curPeriodBase = _ateVal || `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}`;
-  const _lastPeriodBase = _curPeriodBase;
+  const _lastPeriodBase = _ateVal || `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}`;
   const _lpDate = new Date(parseInt(_lastPeriodBase.split('-')[0]), parseInt(_lastPeriodBase.split('-')[1])-2, 1);
   const lastPeriod = `${_lpDate.getFullYear()}-${String(_lpDate.getMonth()+1).padStart(2,'0')}`;
-  const curPeriod = _curPeriodBase;
   const lastE = fc.filter(r=>getEntradaYM_contab(r)===lastPeriod).length + ft.filter(r=>getEntradaYM_tech(r)===lastPeriod).length;
   const lastS = fc.filter(r=>getSaidaYM_contab(r)===lastPeriod).length + ft.filter(r=>getSaidaYM_tech(r)===lastPeriod).length;
-  const curE = fc.filter(r=>getEntradaYM_contab(r)===curPeriod).length + ft.filter(r=>getEntradaYM_tech(r)===curPeriod).length;
-  const curS = fc.filter(r=>getSaidaYM_contab(r)===curPeriod).length + ft.filter(r=>getSaidaYM_tech(r)===curPeriod).length;
   // Entradas acumuladas 2026 com filtro
   const periodos2026=filtPeriods.filter(p=>p>='2026-01');
   const entradas2026Acum = periodos2026.reduce((sum,p) => sum + fc.filter(r=>getEntradaYM_contab(r)===p).length + ft.filter(r=>getEntradaYM_tech(r)===p).length, 0);
@@ -1066,10 +1051,8 @@ function renderGeral(fc,ft,de,ate){
     {label:'Clientes Ativos',value:ativos,acc:'r',sub:total?Math.round(ativos/total*100)+'% do total':'–'},
     {label:'MRR Consolidado',value:fmtBRL(mrr),acc:'tl',sub:'Honorários + mensalidades'},
     {label:'Ticket Médio Geral',value:fmtBRL(ativos?mrr/ativos:0),acc:'nv',sub:'Por cliente ativo'},
-    {label:'Entradas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastE,vc:'green',sub:'Mês anterior · Novos contratos'},
-    {label:'Entradas — '+curPeriod.split('-')[1]+'/'+curPeriod.split('-')[0],value:curE,vc:'green',sub:'Mês atual · Novos contratos'},
-    {label:'Saídas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Mês anterior · Cancelamentos'},
-    {label:'Saídas — '+curPeriod.split('-')[1]+'/'+curPeriod.split('-')[0],value:curS,acc:'r',vc:'red',sub:'Mês atual · Cancelamentos'},
+    {label:'Entradas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
+    {label:'Saídas — '+lastPeriod.split('-')[1]+'/'+lastPeriod.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos (Inativo, Baixada, Em Cancelamento)'},
     {label:'Inativos Total',value:inativos,acc:'am',sub:'Aguardando reativação'},
     {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
     {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída, porém já contabilizados'},
@@ -1080,12 +1063,12 @@ function renderGeral(fc,ft,de,ate){
   const _ativosRealGC=rawContab.filter(r=>getSituacao(r)==='ATIVO');
   const _ativosRealGT=rawTech.filter(r=>getSituacao(r)==='ATIVO');
   const _ativosRealG=_ativosRealGC.length+_ativosRealGT.length;
-  const _mrrReal=calcMRRAtual(rawContab,getHonorarioContab)+calcMRRAtual(rawTech,getHonorarioTech);
+  const _honRealG=_ativosRealGC.reduce((s,r)=>s+(parseFloat(fv(r,'Honor_x00e1_rio','Honorário','Honorario'))||0),0);
+  const _recRealG=_ativosRealGT.reduce((s,r)=>s+(parseFloat(fv(r,'Valor'))||0),0);
+  const _mrrReal=_honRealG+_recRealG;
   const _entradas2026Real=ALL_PERIODS.filter(p=>p>='2026-01').reduce((sum,p)=>
     sum+rawContab.filter(r=>getEntradaYM_contab(r)===p).length+rawTech.filter(r=>getEntradaYM_tech(r)===p).length,0);
-  // Faturamento anual 2026: meses ativos × honorário por cliente (considera entrada e saída)
-  const fatAnualProj=calcFatAnual2026(rawContab,getEntradaYM_contab,getSaidaYM_contab,getHonorarioContab)
-                    +calcFatAnual2026(rawTech,getEntradaYM_tech,getSaidaYM_tech,getHonorarioTech);
+  const fatAnualProj=_mrrReal*12;
   // Meta acumulada entradas geral
   let _cumMetaEG=0; const _metaAcumEG=META_E_TOTAL_M.map(v=>{_cumMetaEG+=v;return _cumMetaEG;});
   // Meta acumulada MRR geral (MRR alvo = meta anual / 12 proporcional)
@@ -1106,10 +1089,10 @@ function renderGeral(fc,ft,de,ate){
 
   renderMVR('mvr-geral',[
     {title:'Clientes Ativos',real:_ativosRealG,meta:META.ativos_total,realFmt:_ativosRealG,metaFmt:META.ativos_total,metaAcum:META_ACUM_TOTAL,base:_base2025G},
-    {title:'Entradas (acum. 2026)',real:_entradas2026Real,meta:META.entradas_total,realFmt:_entradas2026Real+' contratos',metaFmt:META.entradas_total+' contratos',metaAcum:_metaAcumEG,base:0},
+    {title:'Entradas (acum. 2026)',real:_entradas2026Real,meta:META.entradas_total,realFmt:_entradas2026Real+' contratos',metaFmt:META.entradas_total+' contratos',metaAcum:_metaAcumEG},
     {title:'Saídas (acum. 2026)',real:_saidas2026Real,meta:META.saidas_total,realFmt:_saidas2026Real+' saídas',metaFmt:META.saidas_total+' saídas',metaAcum:_metaAcumSG,inverso:true},
-    {title:'MRR Consolidado',real:Math.round(_mrrReal),meta:_mrrMetaTotal,realFmt:fmtBRL(_mrrReal),metaFmt:fmtBRL(_mrrMetaTotal),metaAcum:_metaAcumMRR,base:0,fmtSuffix:v=>fmtBRL(v)},
-    {title:'Faturamento Anual (proj.)',real:Math.round(fatAnualProj),meta:META.fat_total,realFmt:fmtM(fatAnualProj),metaFmt:fmtM(META.fat_total),base:0,fmtSuffix:v=>fmtM(v)},
+    {title:'MRR Consolidado',real:Math.round(_mrrReal),meta:_mrrMetaTotal,realFmt:fmtBRL(_mrrReal),metaFmt:fmtBRL(_mrrMetaTotal),metaAcum:_metaAcumMRR},
+    {title:'Faturamento Anual (proj.)',real:Math.round(fatAnualProj),meta:META.fat_total,realFmt:fmtM(fatAnualProj),metaFmt:fmtM(META.fat_total)},
   ]);
 
   // Evolução usando ALL_PERIODS completo (independente do filtro de data)
@@ -1231,25 +1214,19 @@ function renderTech(ft,de,ate){
   const flowT=buildFlow(rawTech,getEntradaYM_tech,getSaidaYM_tech,filtPeriodsT);
   const _ateValT = ate && ate !== '9999-12' ? ate : null;
   const _nowT=new Date();
-  const _curPeriodBaseT = _ateValT || `${_nowT.getFullYear()}-${String(_nowT.getMonth()+1).padStart(2,'0')}`;
-  const _lastPeriodBaseT = _curPeriodBaseT;
+  const _lastPeriodBaseT = _ateValT || `${_nowT.getFullYear()}-${String(_nowT.getMonth()+1).padStart(2,'0')}`;
   const _lpDateT = new Date(parseInt(_lastPeriodBaseT.split('-')[0]), parseInt(_lastPeriodBaseT.split('-')[1])-2, 1);
   const lastPeriodT=`${_lpDateT.getFullYear()}-${String(_lpDateT.getMonth()+1).padStart(2,'0')}`;
-  const curPeriodT=_curPeriodBaseT;
   const lastE = ft.filter(r=>getEntradaYM_tech(r)===lastPeriodT).length;
   const lastS = ft.filter(r=>getSaidaYM_tech(r)===lastPeriodT).length;
-  const curE = ft.filter(r=>getEntradaYM_tech(r)===curPeriodT).length;
-  const curS = ft.filter(r=>getSaidaYM_tech(r)===curPeriodT).length;
 
   renderKPIs('kpi-tech',[
     {label:'Total Tech',value:ft.length,sub:'na base filtrada'},
     {label:'Ativos',value:ativos.length,acc:'r',sub:ft.length?Math.round(ativos.length/ft.length*100)+'% do total':'–'},
     {label:'MRR',value:fmtBRL(rec),acc:'tl',sub:'Clientes ativos'},
     {label:'Ticket Médio',value:'R$ '+(ativos.length?Math.round(rec/ativos.length).toLocaleString('pt-BR'):'0'),acc:'nv',sub:'Por ativo'},
-    {label:'Entradas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastE,vc:'green',sub:'Mês anterior · Novos contratos'},
-    {label:'Entradas — '+curPeriodT.split('-')[1]+'/'+curPeriodT.split('-')[0],value:curE,vc:'green',sub:'Mês atual · Novos contratos'},
-    {label:'Saídas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Mês anterior · Cancelamentos'},
-    {label:'Saídas — '+curPeriodT.split('-')[1]+'/'+curPeriodT.split('-')[0],value:curS,acc:'r',vc:'red',sub:'Mês atual · Cancelamentos'},
+    {label:'Entradas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
+    {label:'Saídas — '+lastPeriodT.split('-')[1]+'/'+lastPeriodT.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos (Inativo, Baixada, Em Cancelamento)'},
     {label:'Inativos',value:inativos,acc:'am',sub:'Aguardando reativação'},
     {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
     {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída, porém já contabilizados'},
@@ -1257,8 +1234,7 @@ function renderTech(ft,de,ate){
   ]);
 
   const _ativosRealT=rawTech.filter(r=>getSituacao(r)==='ATIVO');
-  const _recReal=calcMRRAtual(rawTech,getHonorarioTech);
-  const _fatAnualT=calcFatAnual2026(rawTech,getEntradaYM_tech,getSaidaYM_tech,getHonorarioTech);
+  const _recReal=_ativosRealT.reduce((s,r)=>s+(parseFloat(fv(r,'Valor'))||0),0);
   const _metaAcumMRRT=MESES_2026.map((_,i)=>Math.round(META.mrr_tech*(i+1)/12));
   const _saidas2026T=ALL_PERIODS.filter(p=>p>='2026-01').reduce((sum,p)=>sum+rawTech.filter(r=>getSaidaYM_tech(r)===p).length,0);
   const _entradas2026T=ALL_PERIODS.filter(p=>p>='2026-01').reduce((sum,p)=>sum+rawTech.filter(r=>getEntradaYM_tech(r)===p).length,0);
@@ -1266,11 +1242,11 @@ function renderTech(ft,de,ate){
   let _cumMetaST=0; const _metaAcumST=META_S_TECH_M.map(v=>{_cumMetaST+=v;return _cumMetaST;});
   renderMVR('mvr-tech',[
     {title:'Clientes Ativos',real:_ativosRealT.length,meta:META.ativos_tech,realFmt:_ativosRealT.length,metaFmt:META.ativos_tech,metaAcum:META_ACUM_TECH,base:snapshotPorPeriodo(rawTech,getEntradaYM_tech,'2025-12').filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,'2025-12')==='ATIVO').length},
-    {title:'Entradas (acum. 2026)',real:_entradas2026T,meta:META.entradas_tech,realFmt:_entradas2026T+' contratos',metaFmt:META.entradas_tech+' contratos',metaAcum:_metaAcumET,base:0},
+    {title:'Entradas (acum. 2026)',real:_entradas2026T,meta:META.entradas_tech,realFmt:_entradas2026T+' contratos',metaFmt:META.entradas_tech+' contratos',metaAcum:_metaAcumET},
     {title:'Saídas (acum. 2026)',real:_saidas2026T,meta:META.saidas_tech,realFmt:_saidas2026T+' saídas',metaFmt:META.saidas_tech+' saídas',metaAcum:_metaAcumST,inverso:true},
-    {title:'MRR Tech',real:Math.round(_recReal),meta:META.mrr_tech,realFmt:fmtBRL(_recReal),metaFmt:fmtBRL(META.mrr_tech),metaAcum:_metaAcumMRRT,base:0,fmtSuffix:v=>fmtBRL(v)},
-    {title:'Ticket Médio',real:_ativosRealT.length?Math.round(_recReal/_ativosRealT.length):0,meta:META.ticket_tech,realFmt:'R$ '+(_ativosRealT.length?Math.round(_recReal/_ativosRealT.length):0),metaFmt:'R$ '+META.ticket_tech,base:0},
-    {title:'Faturamento Anual (proj.)',real:Math.round(_fatAnualT),meta:META.fat_tech,realFmt:fmtM(_fatAnualT),metaFmt:fmtM(META.fat_tech),base:0,fmtSuffix:v=>fmtM(v)},
+    {title:'MRR Tech',real:Math.round(_recReal),meta:META.mrr_tech,realFmt:fmtBRL(_recReal),metaFmt:fmtBRL(META.mrr_tech),metaAcum:_metaAcumMRRT},
+    {title:'Ticket Médio',real:_ativosRealT.length?Math.round(_recReal/_ativosRealT.length):0,meta:META.ticket_tech,realFmt:'R$ '+(_ativosRealT.length?Math.round(_recReal/_ativosRealT.length):0),metaFmt:'R$ '+META.ticket_tech},
+    {title:'Faturamento Anual (proj.)',real:Math.round(_recReal*12),meta:META.fat_tech,realFmt:fmtM(_recReal*12),metaFmt:fmtM(META.fat_tech)},
   ]);
 
   const flowTAll2=buildFlow(rawTech,getEntradaYM_tech,getSaidaYM_tech,ALL_PERIODS);
@@ -1317,25 +1293,19 @@ function renderContab(fc,de,ate){
   const flowC=buildFlow(rawContab,getEntradaYM_contab,getSaidaYM_contab,filtPeriodsC);
   const _ateValC = ate && ate !== '9999-12' ? ate : null;
   const _nowC=new Date();
-  const _curPeriodBaseC = _ateValC || `${_nowC.getFullYear()}-${String(_nowC.getMonth()+1).padStart(2,'0')}`;
-  const _lastPeriodBaseC = _curPeriodBaseC;
+  const _lastPeriodBaseC = _ateValC || `${_nowC.getFullYear()}-${String(_nowC.getMonth()+1).padStart(2,'0')}`;
   const _lpDateC = new Date(parseInt(_lastPeriodBaseC.split('-')[0]), parseInt(_lastPeriodBaseC.split('-')[1])-2, 1);
   const lastPeriodC=`${_lpDateC.getFullYear()}-${String(_lpDateC.getMonth()+1).padStart(2,'0')}`;
-  const curPeriodC=_curPeriodBaseC;
   const lastE = fc.filter(r=>getEntradaYM_contab(r)===lastPeriodC).length;
   const lastS = fc.filter(r=>getSaidaYM_contab(r)===lastPeriodC).length;
-  const curE = fc.filter(r=>getEntradaYM_contab(r)===curPeriodC).length;
-  const curS = fc.filter(r=>getSaidaYM_contab(r)===curPeriodC).length;
 
   renderKPIs('kpi-cont',[
     {label:'Total Contabilidade',value:fc.length,sub:'na base filtrada'},
     {label:'Ativos',value:ativos.length,acc:'r',sub:fc.length?Math.round(ativos.length/fc.length*100)+'% do total':'–'},
     {label:'Honorários/Mês',value:fmtBRL(hon),acc:'tl',sub:'Clientes ativos'},
     {label:'Ticket Médio',value:'R$ '+(ativos.length?Math.round(hon/ativos.length).toLocaleString('pt-BR'):'0'),acc:'nv',sub:'Por ativo'},
-    {label:'Entradas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastE,vc:'green',sub:'Mês anterior · Novos contratos'},
-    {label:'Entradas — '+curPeriodC.split('-')[1]+'/'+curPeriodC.split('-')[0],value:curE,vc:'green',sub:'Mês atual · Novos contratos'},
-    {label:'Saídas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Mês anterior · Cancelamentos'},
-    {label:'Saídas — '+curPeriodC.split('-')[1]+'/'+curPeriodC.split('-')[0],value:curS,acc:'r',vc:'red',sub:'Mês atual · Cancelamentos'},
+    {label:'Entradas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastE,vc:'green',sub:'Novos contratos'},
+    {label:'Saídas — '+lastPeriodC.split('-')[1]+'/'+lastPeriodC.split('-')[0],value:lastS,acc:'r',vc:'red',sub:'Cancelamentos (Inativo, Baixada, Em Cancelamento)'},
     {label:'Inativos',value:inativos,acc:'am',sub:'Aguardando reativação'},
     {label:'Suspensos',value:suspensos,acc:'nv',sub:'Pausados temporariamente'},
     {label:'Em Cancelamento',value:emCancelamento,acc:'r',sub:'Em processo de saída, porém já contabilizados'},
@@ -1343,8 +1313,7 @@ function renderContab(fc,de,ate){
   ]);
 
   const _ativosRealC=rawContab.filter(r=>getSituacao(r)==='ATIVO');
-  const _honReal=calcMRRAtual(rawContab,getHonorarioContab);
-  const _fatAnualC=calcFatAnual2026(rawContab,getEntradaYM_contab,getSaidaYM_contab,getHonorarioContab);
+  const _honReal=_ativosRealC.reduce((s,r)=>s+(parseFloat(fv(r,'Honor_x00e1_rio','Honorário','Honorario'))||0),0);
   const _metaAcumMRRC=MESES_2026.map((_,i)=>Math.round(META.mrr_contab*(i+1)/12));
   const _saidas2026C=ALL_PERIODS.filter(p=>p>='2026-01').reduce((sum,p)=>sum+rawContab.filter(r=>getSaidaYM_contab(r)===p).length,0);
   const _entradas2026C=ALL_PERIODS.filter(p=>p>='2026-01').reduce((sum,p)=>sum+rawContab.filter(r=>getEntradaYM_contab(r)===p).length,0);
@@ -1352,11 +1321,11 @@ function renderContab(fc,de,ate){
   let _cumMetaSC=0; const _metaAcumSC=META_S_CONTAB_M.map(v=>{_cumMetaSC+=v;return _cumMetaSC;});
   renderMVR('mvr-cont',[
     {title:'Clientes Ativos',real:_ativosRealC.length,meta:META.ativos_contab,realFmt:_ativosRealC.length,metaFmt:META.ativos_contab,metaAcum:META_ACUM_CONTAB,base:snapshotPorPeriodo(rawContab,getEntradaYM_contab,'2025-12').filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,'2025-12')==='ATIVO').length},
-    {title:'Entradas (acum. 2026)',real:_entradas2026C,meta:META.entradas_contab,realFmt:_entradas2026C+' contratos',metaFmt:META.entradas_contab+' contratos',metaAcum:_metaAcumEC,base:0},
+    {title:'Entradas (acum. 2026)',real:_entradas2026C,meta:META.entradas_contab,realFmt:_entradas2026C+' contratos',metaFmt:META.entradas_contab+' contratos',metaAcum:_metaAcumEC},
     {title:'Saídas (acum. 2026)',real:_saidas2026C,meta:META.saidas_contab,realFmt:_saidas2026C+' saídas',metaFmt:META.saidas_contab+' saídas',metaAcum:_metaAcumSC,inverso:true},
-    {title:'MRR Contabilidade',real:Math.round(_honReal),meta:META.mrr_contab,realFmt:fmtBRL(_honReal),metaFmt:fmtBRL(META.mrr_contab),metaAcum:_metaAcumMRRC,base:0,fmtSuffix:v=>fmtBRL(v)},
-    {title:'Ticket Médio',real:_ativosRealC.length?Math.round(_honReal/_ativosRealC.length):0,meta:META.ticket_contab,realFmt:'R$ '+(_ativosRealC.length?Math.round(_honReal/_ativosRealC.length):0),metaFmt:'R$ '+META.ticket_contab,base:0},
-    {title:'Faturamento Anual (proj.)',real:Math.round(_fatAnualC),meta:META.fat_contab,realFmt:fmtM(_fatAnualC),metaFmt:fmtM(META.fat_contab),base:0,fmtSuffix:v=>fmtM(v)},
+    {title:'MRR Contabilidade',real:Math.round(_honReal),meta:META.mrr_contab,realFmt:fmtBRL(_honReal),metaFmt:fmtBRL(META.mrr_contab),metaAcum:_metaAcumMRRC},
+    {title:'Ticket Médio',real:_ativosRealC.length?Math.round(_honReal/_ativosRealC.length):0,meta:META.ticket_contab,realFmt:'R$ '+(_ativosRealC.length?Math.round(_honReal/_ativosRealC.length):0),metaFmt:'R$ '+META.ticket_contab},
+    {title:'Faturamento Anual (proj.)',real:Math.round(_honReal*12),meta:META.fat_contab,realFmt:fmtM(_honReal*12),metaFmt:fmtM(META.fat_contab)},
   ]);
 
   const flowCAll2=buildFlow(rawContab,getEntradaYM_contab,getSaidaYM_contab,ALL_PERIODS);
@@ -1864,9 +1833,89 @@ function setTab(tab,btn){
   document.getElementById('sec-'+tab).classList.add('on');
   btn.classList.add('active');
   const fb=document.getElementById('filters-bar');
-  if(fb) fb.style.display=(tab==='crescimento'||tab==='share')?'none':'flex';
+  if(fb) fb.style.display=(tab==='crescimento'||tab==='share'||tab==='migracao')?'none':'flex';
   if(tab==='crescimento') renderCrescimento();
   if(tab==='share') renderShare();
+  if(tab==='migracao') renderMigracao();
+}
+
+function getFormaPagamento(r){
+  return fv(r,'FormadePagamento','Forma_x0020_de_x0020_Pagamento','FormaPagamento','Forma de Pagamento') || '';
+}
+
+function renderMigracao(){
+  if(!rawTech||!rawTech.length) return;
+  const ativos = rawTech.filter(r=>getSituacao(r)==='ATIVO');
+  const total = ativos.length;
+
+  // Contagens por status
+  const counts = {'Cartão de Crédito':0,'Boleto':0,'Acionar próximo mês':0,'Verificar se foi concretizado':0,'':0};
+  ativos.forEach(r=>{
+    const f = getFormaPagamento(r);
+    if(counts[f]!==undefined) counts[f]++;
+    else counts['']++;
+  });
+
+  // KPI cards
+  const STATUS_CFG = [
+    {key:'Cartão de Crédito',   label:'Cartão de Crédito', emoji:'✅', acc:'tl'},
+    {key:'Boleto',              label:'Boleto',             emoji:'🔵', acc:'nv'},
+    {key:'Acionar próximo mês', label:'Acionar próximo mês',emoji:'🟡', acc:'am'},
+    {key:'Verificar se foi concretizado', label:'Verificar se foi concretizado', emoji:'🔍', acc:'r'},
+    {key:'',                    label:'Não definido',       emoji:'⬜', acc:''},
+  ];
+  renderKPIs('kpi-migracao', STATUS_CFG.map(s=>({
+    label: s.emoji+' '+s.label,
+    value: counts[s.key]||0,
+    acc: s.acc,
+    sub: total ? Math.round((counts[s.key]||0)/total*100)+'% dos ativos' : '–'
+  })));
+
+  // Barra de progresso
+  const migrados = counts['Cartão de Crédito']||0;
+  const pct = total ? Math.round(migrados/total*100) : 0;
+  document.getElementById('migr-bar').style.width = pct+'%';
+  document.getElementById('migr-pct').textContent = pct+'%';
+  document.getElementById('migr-sub').textContent = migrados+' de '+total+' clientes ativos migrados';
+
+  // Lista filtrada
+  const filtro = document.getElementById('migr-filtro').value;
+  // opção "Não definido" no select tem value="" mas precisamos distinguir de "todos"
+  // usamos um atributo data para isso — verificamos se selectedIndex é o último
+  const sel = document.getElementById('migr-filtro');
+  const isNaoDef = sel.selectedIndex === sel.options.length - 1 && filtro === '';
+  const isTodos  = sel.selectedIndex === 0;
+
+  const lista = ativos.filter(r=>{
+    const f = getFormaPagamento(r);
+    if(isTodos) return true;
+    if(isNaoDef) return !f;
+    return f === filtro;
+  });
+
+  document.getElementById('migr-count').textContent = lista.length+' cliente'+(lista.length!==1?'s':'');
+
+  const STATUS_BADGE = {
+    'Cartão de Crédito':        '<span style="background:#d4f4e8;color:#1a7a3a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">✅ Cartão</span>',
+    'Boleto':                   '<span style="background:#e8f0fb;color:#1a3a7a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🔵 Boleto</span>',
+    'Acionar próximo mês':      '<span style="background:#fff8e1;color:#7a5a00;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🟡 Acionar</span>',
+    'Verificar se foi concretizado':'<span style="background:#fde8e8;color:#7a1a1a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🔍 Verificar</span>',
+  };
+
+  const rows = lista.map((r,i)=>{
+    const nome = fv(r,'Title','Nome','title','name') || '—';
+    const plano = getPlano(r);
+    const forma = getFormaPagamento(r);
+    const badge = STATUS_BADGE[forma] || '<span style="background:var(--g3);color:var(--g1);padding:2px 8px;border-radius:10px;font-size:11px">⬜ Não definido</span>';
+    const bg = i%2===0?'#fff':'#f9fbfc';
+    return '<tr style="background:'+bg+';border-bottom:1px solid var(--g3)">'
+      +'<td style="padding:9px 12px;color:var(--navy);font-weight:500">'+nome+'</td>'
+      +'<td style="padding:9px 12px;color:var(--g1)">'+plano+'</td>'
+      +'<td style="padding:9px 12px">'+badge+'</td>'
+      +'</tr>';
+  }).join('');
+
+  document.getElementById('migr-tbody').innerHTML = rows || '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--g1)">Nenhum cliente encontrado</td></tr>';
 }
 function renderShare() {
   // Data de atualização
@@ -1877,7 +1926,7 @@ function renderShare() {
   const _ativosRealC = rawContab.filter(r=>getSituacao(r)==='ATIVO');
   const _honReal = _ativosRealC.reduce((s,r)=>s+(parseFloat(fv(r,'Honor_x00e1_rio','Honorário','Honorario'))||0),0);
   const _ativosRealT = rawTech.filter(r=>getSituacao(r)==='ATIVO');
-  const _recReal = calcMRRAtual(rawTech,getHonorarioTech);
+  const _recReal = _ativosRealT.reduce((s,r)=>s+(parseFloat(fv(r,'Valor'))||0),0);
   const _entC = ALL_PERIODS.filter(p=>p>='2026-01').reduce((s,p)=>s+rawContab.filter(r=>getEntradaYM_contab(r)===p).length,0);
   const _entT = ALL_PERIODS.filter(p=>p>='2026-01').reduce((s,p)=>s+rawTech.filter(r=>getEntradaYM_tech(r)===p).length,0);
   const _saiC = ALL_PERIODS.filter(p=>p>='2026-01').reduce((s,p)=>s+rawContab.filter(r=>getSaidaYM_contab(r)===p).length,0);
@@ -1892,13 +1941,13 @@ function renderShare() {
 
   renderMVR('share-mvr-cont',[
     {title:'Clientes Ativos',real:_ativosRealC.length,meta:META.ativos_contab,realFmt:_ativosRealC.length,metaFmt:META.ativos_contab,metaAcum:META_ACUM_CONTAB,base:snapshotPorPeriodo(rawContab,getEntradaYM_contab,'2025-12').filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,'2025-12')==='ATIVO').length},
-    {title:'Entradas (acum. 2026)',real:_entC,meta:META.entradas_contab,realFmt:_entC+' contratos',metaFmt:META.entradas_contab+' contratos',metaAcum:_metaEC,base:0},
+    {title:'Entradas (acum. 2026)',real:_entC,meta:META.entradas_contab,realFmt:_entC+' contratos',metaFmt:META.entradas_contab+' contratos',metaAcum:_metaEC},
     {title:'Saídas (acum. 2026)',real:_saiC,meta:META.saidas_contab,realFmt:_saiC+' saídas',metaFmt:META.saidas_contab+' saídas',metaAcum:_metaSC,inverso:true},
   ]);
 
   renderMVR('share-mvr-tech',[
     {title:'Clientes Ativos',real:_ativosRealT.length,meta:META.ativos_tech,realFmt:_ativosRealT.length,metaFmt:META.ativos_tech,metaAcum:META_ACUM_TECH,base:snapshotPorPeriodo(rawTech,getEntradaYM_tech,'2025-12').filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,'2025-12')==='ATIVO').length},
-    {title:'Entradas (acum. 2026)',real:_entT,meta:META.entradas_tech,realFmt:_entT+' contratos',metaFmt:META.entradas_tech+' contratos',metaAcum:_metaET,base:0},
+    {title:'Entradas (acum. 2026)',real:_entT,meta:META.entradas_tech,realFmt:_entT+' contratos',metaFmt:META.entradas_tech+' contratos',metaAcum:_metaET},
     {title:'Saídas (acum. 2026)',real:_saiT,meta:META.saidas_tech,realFmt:_saiT+' saídas',metaFmt:META.saidas_tech+' saídas',metaAcum:_metaST,inverso:true},
   ]);
 
