@@ -469,43 +469,64 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       <!-- CARDS DE STATUS -->
       <div class="kpis" id="kpi-migracao"></div>
 
-      <!-- BARRA DE PROGRESSO GERAL -->
+      <!-- BARRA DE PROGRESSO SEGMENTADA -->
       <div style="background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <span style="font-weight:600;font-size:13px;color:var(--navy)">Progresso de Migração para Cartão de Crédito</span>
-          <span id="migr-pct" style="font-size:13px;font-weight:700;color:var(--teal)">0%</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-weight:600;font-size:13px;color:var(--navy)">Distribuição por forma de pagamento</span>
+          <span id="migr-total-label" style="font-size:12px;color:var(--g1)">0 clientes ativos</span>
         </div>
-        <div style="background:var(--g3);border-radius:6px;height:14px;overflow:hidden">
-          <div id="migr-bar" style="height:100%;background:var(--teal);border-radius:6px;transition:width .4s;width:0%"></div>
+        <div style="display:flex;border-radius:8px;overflow:hidden;height:18px;width:100%" id="migr-bar-wrap">
+          <div id="migr-seg-cartao"  style="background:#0C7488;height:100%;transition:width .4s;width:0%" title="Cartão de Crédito"></div>
+          <div id="migr-seg-boleto"  style="background:#B5D4F4;height:100%;transition:width .4s;width:0%" title="Boleto"></div>
+          <div id="migr-seg-acionar" style="background:#FAC775;height:100%;transition:width .4s;width:0%" title="Acionar próximo mês"></div>
+          <div id="migr-seg-verificar" style="background:#F09595;height:100%;transition:width .4s;width:0%" title="Verificar se foi concretizado"></div>
+          <div id="migr-seg-undef"   style="background:#AAB8C2;height:100%;transition:width .4s;width:0%" title="Não definido"></div>
         </div>
-        <div id="migr-sub" style="font-size:11px;color:var(--g1);margin-top:6px">0 de 0 clientes ativos migrados</div>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap" id="migr-legend">
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#0C7488"></div><span style="font-size:11px;color:var(--g1)">Cartão de crédito</span><span id="migr-leg-cartao" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#378ADD"></div><span style="font-size:11px;color:var(--g1)">Boleto</span><span id="migr-leg-boleto" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#EF9F27"></div><span style="font-size:11px;color:var(--g1)">Acionar próximo mês</span><span id="migr-leg-acionar" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#E24B4A"></div><span style="font-size:11px;color:var(--g1)">Verificar se foi concretizado</span><span id="migr-leg-verificar" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#AAB8C2"></div><span style="font-size:11px;color:var(--g1)">Não definido</span><span id="migr-leg-undef" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
+        </div>
       </div>
 
-      <!-- FILTRO + LISTA -->
+      <!-- FILTRO + LISTA 3 COLUNAS -->
       <div style="background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
           <span style="font-weight:600;font-size:13px;color:var(--navy)">Clientes Ativos</span>
           <select id="migr-filtro" onchange="renderMigracao()" style="padding:5px 10px;border-radius:6px;border:1px solid var(--g2);font-size:12px;font-family:Poppins,sans-serif;color:var(--navy)">
-            <option value="">Todos</option>
+            <option value="__todos__">Todos</option>
             <option value="Cartão de Crédito">✅ Cartão de Crédito</option>
             <option value="Boleto">🔵 Boleto</option>
             <option value="Acionar próximo mês">🟡 Acionar próximo mês</option>
             <option value="Verificar se foi concretizado">🔍 Verificar se foi concretizado</option>
-            <option value="">⬜ Não definido</option>
+            <option value="__undef__">⬜ Não definido</option>
           </select>
           <span id="migr-count" style="font-size:12px;color:var(--g1)"></span>
         </div>
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead>
-              <tr style="background:var(--g3);color:var(--navy)">
-                <th style="padding:8px 12px;text-align:left;font-weight:600;border-radius:6px 0 0 0">Cliente</th>
-                <th style="padding:8px 12px;text-align:left;font-weight:600">Plano</th>
-                <th style="padding:8px 12px;text-align:left;font-weight:600;border-radius:0 6px 0 0">Forma de Pagamento</th>
-              </tr>
-            </thead>
-            <tbody id="migr-tbody"></tbody>
-          </table>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <div style="border-radius:10px;border:1px solid var(--g3);overflow:hidden">
+            <div style="padding:9px 14px;background:var(--g3);display:flex;justify-content:space-between;align-items:center">
+              <div><span style="font-size:12px;font-weight:600;color:var(--navy)">Essencial</span><span style="font-size:11px;color:var(--g1);margin-left:6px">R$ 189</span></div>
+              <span id="migr-hdr-1" style="font-size:11px;color:var(--g1)"></span>
+            </div>
+            <div id="migr-col-1" style="font-size:12px"></div>
+          </div>
+          <div style="border-radius:10px;border:1px solid var(--g3);overflow:hidden">
+            <div style="padding:9px 14px;background:var(--g3);display:flex;justify-content:space-between;align-items:center">
+              <div><span style="font-size:12px;font-weight:600;color:var(--navy)">Exclusivo</span><span style="font-size:11px;color:var(--g1);margin-left:6px">R$ 259</span></div>
+              <span id="migr-hdr-2" style="font-size:11px;color:var(--g1)"></span>
+            </div>
+            <div id="migr-col-2" style="font-size:12px"></div>
+          </div>
+          <div style="border-radius:10px;border:1px solid var(--g3);overflow:hidden">
+            <div style="padding:9px 14px;background:var(--g3);display:flex;justify-content:space-between;align-items:center">
+              <div><span style="font-size:12px;font-weight:600;color:var(--navy)">Plus</span><span style="font-size:11px;color:var(--g1);margin-left:6px">R$ 469</span></div>
+              <span id="migr-hdr-3" style="font-size:11px;color:var(--g1)"></span>
+            </div>
+            <div id="migr-col-3" style="font-size:12px"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1871,29 +1892,36 @@ function renderMigracao(){
     sub: total ? Math.round((counts[s.key]||0)/total*100)+'% dos ativos' : '–'
   })));
 
-  // Barra de progresso
-  const migrados = counts['Cartão de Crédito']||0;
-  const pct = total ? Math.round(migrados/total*100) : 0;
-  document.getElementById('migr-bar').style.width = pct+'%';
-  document.getElementById('migr-pct').textContent = pct+'%';
-  document.getElementById('migr-sub').textContent = migrados+' de '+total+' clientes ativos migrados';
+  // Barra segmentada
+  const pct = v => total ? Math.round(v/total*100) : 0;
+  const seg = (id,legId,val) => {
+    const p = pct(val);
+    document.getElementById(id).style.width = p+'%';
+    document.getElementById(legId).textContent = val+' ('+p+'%)';
+  };
+  document.getElementById('migr-total-label').textContent = total+' clientes ativos';
+  seg('migr-seg-cartao',   'migr-leg-cartao',   counts['Cartão de Crédito']||0);
+  seg('migr-seg-boleto',   'migr-leg-boleto',   counts['Boleto']||0);
+  seg('migr-seg-acionar',  'migr-leg-acionar',  counts['Acionar próximo mês']||0);
+  seg('migr-seg-verificar','migr-leg-verificar',counts['Verificar se foi concretizado']||0);
+  seg('migr-seg-undef',    'migr-leg-undef',    counts['']||0);
 
-  // Lista filtrada
+  // Lista filtrada por 3 colunas (plano)
   const filtro = document.getElementById('migr-filtro').value;
-  // opção "Não definido" no select tem value="" mas precisamos distinguir de "todos"
-  // usamos um atributo data para isso — verificamos se selectedIndex é o último
-  const sel = document.getElementById('migr-filtro');
-  const isNaoDef = sel.selectedIndex === sel.options.length - 1 && filtro === '';
-  const isTodos  = sel.selectedIndex === 0;
+  const isTodos  = filtro === '__todos__';
+  const isNaoDef = filtro === '__undef__';
 
-  const lista = ativos.filter(r=>{
+  const listaFiltrada = ativos.filter(r=>{
     const f = getFormaPagamento(r);
     if(isTodos) return true;
     if(isNaoDef) return !f;
     return f === filtro;
   });
 
-  document.getElementById('migr-count').textContent = lista.length+' cliente'+(lista.length!==1?'s':'');
+  const totalFiltrado = listaFiltrada.length;
+  document.getElementById('migr-count').textContent = isTodos
+    ? total+' cliente'+(total!==1?'s':'')
+    : totalFiltrado+' de '+total+' cliente'+(total!==1?'s':'');
 
   const STATUS_BADGE = {
     'Cartão de Crédito':        '<span style="background:#d4f4e8;color:#1a7a3a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">✅ Cartão</span>',
@@ -1902,20 +1930,39 @@ function renderMigracao(){
     'Verificar se foi concretizado':'<span style="background:#fde8e8;color:#7a1a1a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🔍 Verificar</span>',
   };
 
-  const rows = lista.map((r,i)=>{
-    const nome = fv(r,'Title','Nome','title','name') || '—';
-    const plano = getPlano(r);
-    const forma = getFormaPagamento(r);
-    const badge = STATUS_BADGE[forma] || '<span style="background:var(--g3);color:var(--g1);padding:2px 8px;border-radius:10px;font-size:11px">⬜ Não definido</span>';
-    const bg = i%2===0?'#fff':'#f9fbfc';
-    return '<tr style="background:'+bg+';border-bottom:1px solid var(--g3)">'
-      +'<td style="padding:9px 12px;color:var(--navy);font-weight:500">'+nome+'</td>'
-      +'<td style="padding:9px 12px;color:var(--g1)">'+plano+'</td>'
-      +'<td style="padding:9px 12px">'+badge+'</td>'
-      +'</tr>';
-  }).join('');
+  const PLANOS_COL = [
+    {key:'1', colId:'migr-col-1', hdrId:'migr-hdr-1'},
+    {key:'2', colId:'migr-col-2', hdrId:'migr-hdr-2'},
+    {key:'3', colId:'migr-col-3', hdrId:'migr-hdr-3'},
+  ];
 
-  document.getElementById('migr-tbody').innerHTML = rows || '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--g1)">Nenhum cliente encontrado</td></tr>';
+  PLANOS_COL.forEach(p=>{
+    const todos_plano = ativos.filter(r=>{
+      const pk = fv(r,'Plano','PlanoLookupId');
+      return (pk||'1') === p.key;
+    });
+    const filt_plano = todos_plano.filter(r=>{
+      const f = getFormaPagamento(r);
+      if(isTodos) return true;
+      if(isNaoDef) return !f;
+      return f === filtro;
+    });
+    const hdr = isTodos
+      ? todos_plano.length+' cliente'+(todos_plano.length!==1?'s':'')
+      : filt_plano.length+' de '+todos_plano.length;
+    document.getElementById(p.hdrId).textContent = hdr;
+    const rows = filt_plano.map((r,i)=>{
+      const nome = fv(r,'Title','Nome','title','name') || '—';
+      const forma = getFormaPagamento(r);
+      const badge = STATUS_BADGE[forma] || '<span style="background:var(--g3);color:var(--g1);padding:2px 8px;border-radius:10px;font-size:11px">⬜ Não def.</span>';
+      const bg = i%2===0?'#fff':'#f9fbfc';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:'+bg+';border-bottom:1px solid var(--g3)">'
+        +'<span style="color:var(--navy);font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">'+nome+'</span>'
+        +'<span style="flex-shrink:0">'+badge+'</span>'
+        +'</div>';
+    }).join('');
+    document.getElementById(p.colId).innerHTML = rows || '<div style="padding:16px 12px;text-align:center;color:var(--g1);font-size:12px">Nenhum cliente</div>';
+  });
 }
 function renderShare() {
   // Data de atualização
