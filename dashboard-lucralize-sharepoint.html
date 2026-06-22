@@ -473,21 +473,27 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       <div style="background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <span style="font-weight:600;font-size:13px;color:var(--navy)">Distribuição por forma de pagamento</span>
-          <span id="migr-total-label" style="font-size:12px;color:var(--g1)">0 clientes ativos</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--g1)">Processo concluído:</span>
+            <span id="migr-pct-conclusao" style="font-size:15px;font-weight:700;color:var(--teal)">0%</span>
+            <span style="font-size:11px;color:var(--g2)">·</span>
+            <span id="migr-total-label" style="font-size:11px;color:var(--g1)">0 clientes ativos</span>
+          </div>
         </div>
-        <div style="display:flex;border-radius:8px;overflow:hidden;height:18px;width:100%" id="migr-bar-wrap">
-          <div id="migr-seg-cartao"  style="background:#0C7488;height:100%;transition:width .4s;width:0%" title="Cartão de Crédito"></div>
-          <div id="migr-seg-boleto"  style="background:#B5D4F4;height:100%;transition:width .4s;width:0%" title="Boleto"></div>
-          <div id="migr-seg-acionar" style="background:#FAC775;height:100%;transition:width .4s;width:0%" title="Acionar próximo mês"></div>
-          <div id="migr-seg-verificar" style="background:#F09595;height:100%;transition:width .4s;width:0%" title="Verificar se foi concretizado"></div>
-          <div id="migr-seg-undef"   style="background:#AAB8C2;height:100%;transition:width .4s;width:0%" title="Não definido"></div>
+        <div style="display:flex;border-radius:8px;overflow:hidden;height:26px;width:100%" id="migr-bar-wrap">
+          <div id="migr-seg-cartao"   style="background:#0C7488;height:100%;transition:width .4s;width:0%;display:flex;align-items:center;justify-content:center;overflow:hidden" title="Cartão de Crédito"></div>
+          <div id="migr-seg-optou"    style="background:#7F8C97;height:100%;transition:width .4s;width:0%" title="Boleto (Optou não migrar)"></div>
+          <div id="migr-seg-boleto"   style="background:#C8DFF0;height:100%;transition:width .4s;width:0%;display:flex;align-items:center;justify-content:center;overflow:hidden" title="Boleto"></div>
+          <div id="migr-seg-acionar"  style="background:#FAE0A8;height:100%;transition:width .4s;width:0%;display:flex;align-items:center;justify-content:center;overflow:hidden" title="Acionar próximo mês"></div>
+          <div id="migr-seg-verificar" style="background:#F7C0C0;height:100%;transition:width .4s;width:0%" title="Verificar se foi concretizado"></div>
         </div>
-        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap" id="migr-legend">
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#0C7488"></div><span style="font-size:11px;color:var(--g1)">Cartão de crédito</span><span id="migr-leg-cartao" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#378ADD"></div><span style="font-size:11px;color:var(--g1)">Boleto</span><span id="migr-leg-boleto" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#EF9F27"></div><span style="font-size:11px;color:var(--g1)">Acionar próximo mês</span><span id="migr-leg-acionar" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#E24B4A"></div><span style="font-size:11px;color:var(--g1)">Verificar se foi concretizado</span><span id="migr-leg-verificar" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#AAB8C2"></div><span style="font-size:11px;color:var(--g1)">Não definido</span><span id="migr-leg-undef" style="font-size:11px;font-weight:600;color:var(--navy)">0 (0%)</span></div>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;align-items:center" id="migr-legend">
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#0C7488"></div><span style="font-size:11px;font-weight:600;color:var(--navy)">Cartão de crédito</span><span id="migr-leg-cartao" style="font-size:11px;font-weight:600;color:var(--navy)"> · 0</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#7F8C97"></div><span style="font-size:11px;font-weight:600;color:var(--navy)">Optou não migrar</span><span id="migr-leg-optou" style="font-size:11px;font-weight:600;color:var(--navy)"> · 0 (0%)</span></div>
+          <div style="width:1px;height:14px;background:var(--g3)"></div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#C8DFF0"></div><span style="font-size:11px;color:var(--g1)">Boleto</span><span id="migr-leg-boleto" style="font-size:11px;color:var(--g1)"> · 0</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#FAE0A8"></div><span style="font-size:11px;color:var(--g1)">Acionar próximo mês</span><span id="migr-leg-acionar" style="font-size:11px;color:var(--g1)"> · 0</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#F7C0C0"></div><span style="font-size:11px;color:var(--g1)">Verificar se foi concretizado</span><span id="migr-leg-verificar" style="font-size:11px;color:var(--g1)"> · 0 (0%)</span></div>
         </div>
       </div>
 
@@ -499,9 +505,9 @@ main{max-width:1400px;margin:0 auto;padding:18px}
             <option value="__todos__">Todos</option>
             <option value="Cartão de Crédito">✅ Cartão de Crédito</option>
             <option value="Boleto">🔵 Boleto</option>
+            <option value="Boleto (Optou não migrar)">🚫 Boleto (Optou não migrar)</option>
             <option value="Acionar próximo mês">🟡 Acionar próximo mês</option>
             <option value="Verificar se foi concretizado">🔍 Verificar se foi concretizado</option>
-            <option value="__undef__">⬜ Não definido</option>
           </select>
           <span id="migr-count" style="font-size:12px;color:var(--g1)"></span>
         </div>
@@ -1870,20 +1876,20 @@ function renderMigracao(){
   const total = ativos.length;
 
   // Contagens por status
-  const counts = {'Cartão de Crédito':0,'Boleto':0,'Acionar próximo mês':0,'Verificar se foi concretizado':0,'':0};
+  const counts = {'Cartão de Crédito':0,'Boleto':0,'Boleto (Optou não migrar)':0,'Acionar próximo mês':0,'Verificar se foi concretizado':0,'':0};
   ativos.forEach(r=>{
     const f = getFormaPagamento(r);
     if(counts[f]!==undefined) counts[f]++;
     else counts['']++;
   });
 
-  // KPI cards
+  // KPI cards — ordem: Cartão, Boleto, Optou não migrar, Acionar, Verificar
   const STATUS_CFG = [
-    {key:'Cartão de Crédito',   label:'Cartão de Crédito', emoji:'✅', acc:'tl'},
-    {key:'Boleto',              label:'Boleto',             emoji:'🔵', acc:'nv'},
-    {key:'Acionar próximo mês', label:'Acionar próximo mês',emoji:'🟡', acc:'am'},
+    {key:'Cartão de Crédito',            label:'Cartão de Crédito',            emoji:'✅', acc:'tl'},
+    {key:'Boleto',                        label:'Boleto',                        emoji:'🔵', acc:'nv'},
+    {key:'Boleto (Optou não migrar)',  label:'Boleto (Optou não migrar)', emoji:'🚫', acc:''},
+    {key:'Acionar próximo mês',  label:'Acionar próximo mês',  emoji:'🟡', acc:'am'},
     {key:'Verificar se foi concretizado', label:'Verificar se foi concretizado', emoji:'🔍', acc:'r'},
-    {key:'',                    label:'Não definido',       emoji:'⬜', acc:''},
   ];
   renderKPIs('kpi-migracao', STATUS_CFG.map(s=>({
     label: s.emoji+' '+s.label,
@@ -1892,29 +1898,50 @@ function renderMigracao(){
     sub: total ? Math.round((counts[s.key]||0)/total*100)+'% dos ativos' : '–'
   })));
 
-  // Barra segmentada
+  // Barra segmentada — ordem: Cartão, Optou, Boleto, Acionar, Verificar
   const pct = v => total ? Math.round(v/total*100) : 0;
-  const seg = (id,legId,val) => {
+  const vCartao   = counts['Cartão de Crédito']||0;
+  const vOptou    = counts['Boleto (Optou não migrar)']||0;
+  const vBoleto   = counts['Boleto']||0;
+  const vAcionar  = counts['Acionar próximo mês']||0;
+  const vVerif    = counts['Verificar se foi concretizado']||0;
+  const pConclusao = total ? Math.round((vCartao+vOptou)/total*100) : 0;
+  const MIN_PCT_LABEL = 5; // mínimo para mostrar % dentro da barra
+
+  const setSegBar = (id, val, showLabel, labelColor) => {
     const p = pct(val);
-    document.getElementById(id).style.width = p+'%';
-    document.getElementById(legId).textContent = val+' ('+p+'%)';
+    const el = document.getElementById(id);
+    el.style.width = p+'%';
+    if(showLabel && p >= MIN_PCT_LABEL) {
+      el.innerHTML = '<span style="font-size:10px;font-weight:700;color:'+labelColor+'">'+p+'%</span>';
+    } else {
+      el.innerHTML = '';
+    }
   };
+
   document.getElementById('migr-total-label').textContent = total+' clientes ativos';
-  seg('migr-seg-cartao',   'migr-leg-cartao',   counts['Cartão de Crédito']||0);
-  seg('migr-seg-boleto',   'migr-leg-boleto',   counts['Boleto']||0);
-  seg('migr-seg-acionar',  'migr-leg-acionar',  counts['Acionar próximo mês']||0);
-  seg('migr-seg-verificar','migr-leg-verificar',counts['Verificar se foi concretizado']||0);
-  seg('migr-seg-undef',    'migr-leg-undef',    counts['']||0);
+  document.getElementById('migr-pct-conclusao').textContent = pConclusao+'%';
+
+  setSegBar('migr-seg-cartao',   vCartao,  true, '#fff');
+  setSegBar('migr-seg-optou',    vOptou,   false, '#fff');
+  setSegBar('migr-seg-boleto',   vBoleto,  true, '#185FA5');
+  setSegBar('migr-seg-acionar',  vAcionar, true, '#7a5a00');
+  setSegBar('migr-seg-verificar',vVerif,   false, '#7a1a1a');
+
+  // Legendas
+  document.getElementById('migr-leg-cartao').textContent   = ' · '+vCartao;
+  document.getElementById('migr-leg-optou').textContent    = ' · '+vOptou+' ('+pct(vOptou)+'%)';
+  document.getElementById('migr-leg-boleto').textContent   = ' · '+vBoleto;
+  document.getElementById('migr-leg-acionar').textContent  = ' · '+vAcionar;
+  document.getElementById('migr-leg-verificar').textContent= ' · '+vVerif+' ('+pct(vVerif)+'%)';
 
   // Lista filtrada por 3 colunas (plano)
   const filtro = document.getElementById('migr-filtro').value;
-  const isTodos  = filtro === '__todos__';
-  const isNaoDef = filtro === '__undef__';
+  const isTodos = filtro === '__todos__';
 
   const listaFiltrada = ativos.filter(r=>{
     const f = getFormaPagamento(r);
     if(isTodos) return true;
-    if(isNaoDef) return !f;
     return f === filtro;
   });
 
@@ -1924,9 +1951,10 @@ function renderMigracao(){
     : totalFiltrado+' de '+total+' cliente'+(total!==1?'s':'');
 
   const STATUS_BADGE = {
-    'Cartão de Crédito':        '<span style="background:#d4f4e8;color:#1a7a3a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">✅ Cartão</span>',
-    'Boleto':                   '<span style="background:#e8f0fb;color:#1a3a7a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🔵 Boleto</span>',
-    'Acionar próximo mês':      '<span style="background:#fff8e1;color:#7a5a00;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🟡 Acionar</span>',
+    'Cartão de Crédito':            '<span style="background:#d4f4e8;color:#1a7a3a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">✅ Cartão</span>',
+    'Boleto':                       '<span style="background:#e8f0fb;color:#1a3a7a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🔵 Boleto</span>',
+    'Boleto (Optou não migrar)':    '<span style="background:#f0f0f0;color:#4a4a4a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🚫 Optou não migrar</span>',
+    'Acionar próximo mês':          '<span style="background:#fff8e1;color:#7a5a00;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🟡 Acionar</span>',
     'Verificar se foi concretizado':'<span style="background:#fde8e8;color:#7a1a1a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🔍 Verificar</span>',
   };
 
@@ -1944,7 +1972,6 @@ function renderMigracao(){
     const filt_plano = todos_plano.filter(r=>{
       const f = getFormaPagamento(r);
       if(isTodos) return true;
-      if(isNaoDef) return !f;
       return f === filtro;
     });
     const hdr = isTodos
