@@ -184,7 +184,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       <button class="tab-btn" onclick="setTab('tech',this)">💻 Lucralize Tech</button>
       <button class="tab-btn" onclick="setTab('cont',this)">📋 Contabilidade</button>
       <button class="tab-btn" onclick="setTab('crescimento',this)">🚀 Nosso Crescimento</button>
-      <button class="tab-btn" onclick="setTab('migracao',this)">💳 Migração Pagamento</button>
+      <button class="tab-btn" onclick="setTab('trimestral',this)">📅 Visão Trimestral</button>
       <button class="tab-btn" onclick="setTab('share',this)">📤 Compartilhar</button>
       <button class="tab-btn" id="btn-collapse" onclick="toggleHeader()" style="margin-left:8px;opacity:.8;font-size:11px;letter-spacing:0">↑ Recolher</button>
     </div>
@@ -463,78 +463,9 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       </div>
     </div>
 
-    <div class="section" id="sec-migracao">
-      <div class="sec-title">💳 Migração de Pagamento — Lucralize Tech</div>
-
-      <!-- CARDS DE STATUS -->
-      <div class="kpis" id="kpi-migracao"></div>
-
-      <!-- BARRA DE PROGRESSO SEGMENTADA -->
-      <div style="background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <span style="font-weight:600;font-size:13px;color:var(--navy)">Distribuição por forma de pagamento</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;color:var(--g1)">Processo concluído:</span>
-            <span id="migr-pct-conclusao" style="font-size:15px;font-weight:700;color:var(--teal)">0%</span>
-            <span style="font-size:11px;color:var(--g2)">·</span>
-            <span id="migr-total-label" style="font-size:11px;color:var(--g1)">0 clientes ativos</span>
-          </div>
-        </div>
-        <div style="display:flex;border-radius:8px;overflow:hidden;height:26px;width:100%" id="migr-bar-wrap">
-          <div id="migr-seg-cartao"   style="background:#0C7488;height:100%;transition:width .4s;width:0%;display:flex;align-items:center;justify-content:center;overflow:hidden" title="Cartão de Crédito"></div>
-          <div id="migr-seg-optou"    style="background:#7F8C97;height:100%;transition:width .4s;width:0%;display:flex;align-items:center;justify-content:center;overflow:hidden" title="Boleto (Optou não migrar)"></div>
-          <div id="migr-seg-boleto"   style="background:#C8DFF0;height:100%;transition:width .4s;width:0%;display:flex;align-items:center;justify-content:center;overflow:hidden" title="Boleto"></div>
-          <div id="migr-seg-acionar"  style="background:#FAE0A8;height:100%;transition:width .4s;width:0%;display:flex;align-items:center;justify-content:center;overflow:hidden" title="Acionar próximo mês"></div>
-          <div id="migr-seg-verificar" style="background:#F7C0C0;height:100%;transition:width .4s;width:0%;display:flex;align-items:center;justify-content:center;overflow:hidden" title="Verificar se foi concretizado"></div>
-        </div>
-        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;align-items:center" id="migr-legend">
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#0C7488"></div><span style="font-size:11px;font-weight:600;color:var(--navy)">Cartão de crédito</span><span id="migr-leg-cartao" style="font-size:11px;font-weight:600;color:var(--navy)"> · 0</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#7F8C97"></div><span style="font-size:11px;font-weight:600;color:var(--navy)">Optou não migrar</span><span id="migr-leg-optou" style="font-size:11px;font-weight:600;color:var(--navy)"> · 0 (0%)</span></div>
-          <div style="width:1px;height:14px;background:var(--g3)"></div>
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#C8DFF0"></div><span style="font-size:11px;color:var(--g1)">Boleto</span><span id="migr-leg-boleto" style="font-size:11px;color:var(--g1)"> · 0</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#FAE0A8"></div><span style="font-size:11px;color:var(--g1)">Acionar próximo mês</span><span id="migr-leg-acionar" style="font-size:11px;color:var(--g1)"> · 0</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#F7C0C0"></div><span style="font-size:11px;color:var(--g1)">Verificar se foi concretizado</span><span id="migr-leg-verificar" style="font-size:11px;color:var(--g1)"> · 0 (0%)</span></div>
-        </div>
-      </div>
-
-      <!-- FILTRO + LISTA 3 COLUNAS -->
-      <div style="background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-          <span style="font-weight:600;font-size:13px;color:var(--navy)">Clientes Ativos</span>
-          <select id="migr-filtro" onchange="renderMigracao()" style="padding:5px 10px;border-radius:6px;border:1px solid var(--g2);font-size:12px;font-family:Poppins,sans-serif;color:var(--navy)">
-            <option value="__todos__">Todos</option>
-            <option value="Cartão de Crédito">✅ Cartão de Crédito</option>
-            <option value="Boleto">🔵 Boleto</option>
-            <option value="Boleto (Optou não migrar)">🚫 Boleto (Optou não migrar)</option>
-            <option value="Acionar próximo mês">🟡 Acionar próximo mês</option>
-            <option value="Verificar se foi concretizado">🔍 Verificar se foi concretizado</option>
-          </select>
-          <span id="migr-count" style="font-size:12px;color:var(--g1)"></span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
-          <div style="border-radius:10px;border:1px solid var(--g3);overflow:hidden">
-            <div style="padding:9px 14px;background:var(--g3);display:flex;justify-content:space-between;align-items:center">
-              <div><span style="font-size:12px;font-weight:600;color:var(--navy)">Essencial</span><span style="font-size:11px;color:var(--g1);margin-left:6px">R$ 189</span></div>
-              <span id="migr-hdr-1" style="font-size:11px;color:var(--g1)"></span>
-            </div>
-            <div id="migr-col-1" style="font-size:12px"></div>
-          </div>
-          <div style="border-radius:10px;border:1px solid var(--g3);overflow:hidden">
-            <div style="padding:9px 14px;background:var(--g3);display:flex;justify-content:space-between;align-items:center">
-              <div><span style="font-size:12px;font-weight:600;color:var(--navy)">Exclusivo</span><span style="font-size:11px;color:var(--g1);margin-left:6px">R$ 259</span></div>
-              <span id="migr-hdr-2" style="font-size:11px;color:var(--g1)"></span>
-            </div>
-            <div id="migr-col-2" style="font-size:12px"></div>
-          </div>
-          <div style="border-radius:10px;border:1px solid var(--g3);overflow:hidden">
-            <div style="padding:9px 14px;background:var(--g3);display:flex;justify-content:space-between;align-items:center">
-              <div><span style="font-size:12px;font-weight:600;color:var(--navy)">Plus</span><span style="font-size:11px;color:var(--g1);margin-left:6px">R$ 469</span></div>
-              <span id="migr-hdr-3" style="font-size:11px;color:var(--g1)"></span>
-            </div>
-            <div id="migr-col-3" style="font-size:12px"></div>
-          </div>
-        </div>
-      </div>
+    <div class="section" id="sec-trimestral">
+      <div class="sec-title">📅 Visão Trimestral — Clientes Ativos</div>
+      <div id="trim-container"></div>
     </div>
 
     <div class="section" id="sec-share">
@@ -575,7 +506,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
 const CONFIG = {
   clientId:'c0868f3b-764c-4c5b-a9fc-4af4b6eb0baf',
   tenantId:'5173aa83-66e1-49f3-9128-f2251b43294d',
-  redirectUri:'https://lucralize-comercial.github.io/gestao-comercial/dashboard-lucralize-sharepoint.html',
+  redirectUri:'https://ronaldocassimiro.github.io/gestao-comercial/dashboard-lucralize-sharepoint.html',
   contabilidade:{siteUrl:'lucralize.sharepoint.com:/',listName:'Controle de Clientes'},
   tech:{siteUrl:'lucralize.sharepoint.com:/sites/LUCRALIZETECH',listName:'Base de Usuários'}
 };
@@ -1860,137 +1791,153 @@ function setTab(tab,btn){
   document.getElementById('sec-'+tab).classList.add('on');
   btn.classList.add('active');
   const fb=document.getElementById('filters-bar');
-  if(fb) fb.style.display=(tab==='crescimento'||tab==='share'||tab==='migracao')?'none':'flex';
+  if(fb) fb.style.display=(tab==='crescimento'||tab==='share'||tab==='trimestral')?'none':'flex';
   if(tab==='crescimento') renderCrescimento();
   if(tab==='share') renderShare();
-  if(tab==='migracao') renderMigracao();
+  if(tab==='trimestral') renderTrimestral();
 }
 
-function getFormaPagamento(r){
-  return fv(r,'FormadePagamento','Forma_x0020_de_x0020_Pagamento','FormaPagamento','Forma de Pagamento') || '';
-}
+function renderTrimestral(){
+  if(!rawContab||!rawTech||(!rawContab.length&&!rawTech.length)) return;
 
-function renderMigracao(){
-  if(!rawTech||!rawTech.length) return;
-  const ativos = rawTech.filter(r=>getSituacao(r)==='ATIVO');
-  const total = ativos.length;
-
-  // Contagens por status
-  const counts = {'Cartão de Crédito':0,'Boleto':0,'Boleto (Optou não migrar)':0,'Acionar próximo mês':0,'Verificar se foi concretizado':0,'':0};
-  ativos.forEach(r=>{
-    const f = getFormaPagamento(r);
-    if(counts[f]!==undefined) counts[f]++;
-    else counts['']++;
-  });
-
-  // KPI cards — ordem: Cartão, Boleto, Optou não migrar, Acionar, Verificar
-  const STATUS_CFG = [
-    {key:'Cartão de Crédito',            label:'Cartão de Crédito',            emoji:'✅', acc:'tl'},
-    {key:'Boleto',                        label:'Boleto',                        emoji:'🔵', acc:'nv'},
-    {key:'Boleto (Optou não migrar)',  label:'Boleto (Optou não migrar)', emoji:'🚫', acc:''},
-    {key:'Acionar próximo mês',  label:'Acionar próximo mês',  emoji:'🟡', acc:'am'},
-    {key:'Verificar se foi concretizado', label:'Verificar se foi concretizado', emoji:'🔍', acc:'r'},
+  const META_TOTAL = 750;
+  const TRIMESTRES = [
+    {label:'1º Trimestre 2026', sub:'Jan · Fev · Mar', meses:['2026-01','2026-02','2026-03'], snapMes:'2026-03', metaIdx:2},
+    {label:'2º Trimestre 2026', sub:'Abr · Mai · Jun', meses:['2026-04','2026-05','2026-06'], snapMes:'2026-06', metaIdx:5},
+    {label:'3º Trimestre 2026', sub:'Jul · Ago · Set', meses:['2026-07','2026-08','2026-09'], snapMes:'2026-09', metaIdx:8},
+    {label:'4º Trimestre 2026', sub:'Out · Nov · Dez', meses:['2026-10','2026-11','2026-12'], snapMes:'2026-12', metaIdx:11},
   ];
-  renderKPIs('kpi-migracao', STATUS_CFG.map(s=>({
-    label: s.emoji+' '+s.label,
-    value: counts[s.key]||0,
-    acc: s.acc,
-    sub: total ? Math.round((counts[s.key]||0)/total*100)+'% dos ativos' : '–'
-  })));
 
-  // Barra segmentada — ordem: Cartão, Optou, Boleto, Acionar, Verificar
-  const pct = v => total ? Math.round(v/total*100) : 0;
-  const vCartao   = counts['Cartão de Crédito']||0;
-  const vOptou    = counts['Boleto (Optou não migrar)']||0;
-  const vBoleto   = counts['Boleto']||0;
-  const vAcionar  = counts['Acionar próximo mês']||0;
-  const vVerif    = counts['Verificar se foi concretizado']||0;
-  const pConclusao = total ? Math.round((vCartao+vOptou)/total*100) : 0;
-  const MIN_PCT_LABEL = 5; // mínimo para mostrar % dentro da barra
+  const hoje = new Date();
+  const mesAtual = hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
 
-  const setSegBar = (id, val, showLabel, labelColor) => {
-    const p = pct(val);
-    const el = document.getElementById(id);
-    el.style.width = p+'%';
-    el.style.position = 'relative';
-    if(showLabel && p >= MIN_PCT_LABEL) {
-      el.innerHTML = '<span style="position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:'+labelColor+'">'+p+'%</span>';
-    } else {
-      el.innerHTML = '';
+  const html = TRIMESTRES.map((t,ti)=>{
+    const fimTrim = t.snapMes;
+    const metaAtivos = META_ACUM_TOTAL[t.metaIdx];
+    const trimPassado = mesAtual > fimTrim;
+    const trimAtual = t.meses.includes(mesAtual);
+    const trimFuturo = mesAtual < t.meses[0];
+
+    let ativosC=0, ativosT=0, entradas=0, saidas=0;
+    if(!trimFuturo){
+      const snapC = snapshotPorPeriodo(rawContab, getEntradaYM_contab, fimTrim).filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,fimTrim)==='ATIVO');
+      const snapT = snapshotPorPeriodo(rawTech, getEntradaYM_tech, fimTrim).filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,fimTrim)==='ATIVO');
+      ativosC = snapC.length;
+      ativosT = snapT.length;
+      entradas = t.meses.reduce((s,m)=>
+        s+rawContab.filter(r=>getEntradaYM_contab(r)===m).length
+         +rawTech.filter(r=>getEntradaYM_tech(r)===m).length, 0);
+      saidas = t.meses.reduce((s,m)=>
+        s+rawContab.filter(r=>getSaidaYM_contab(r)===m).length
+         +rawTech.filter(r=>getSaidaYM_tech(r)===m).length, 0);
     }
-  };
+    const ativos = ativosC + ativosT;
+    const pctC = ativos ? Math.round(ativosC/ativos*100) : 0;
+    const pctT = ativos ? Math.round(ativosT/ativos*100) : 0;
 
-  document.getElementById('migr-total-label').textContent = total+' clientes ativos';
-  document.getElementById('migr-pct-conclusao').textContent = pConclusao+'%';
+    const badge = trimPassado
+      ? '<span style="font-size:11px;background:#d4f4e8;color:#1a7a3a;padding:3px 10px;border-radius:6px">Concluído</span>'
+      : trimAtual
+        ? '<span style="font-size:11px;background:#e8f0fb;color:#1a3a7a;padding:3px 10px;border-radius:6px">Em andamento</span>'
+        : '<span style="font-size:11px;background:var(--g3);color:var(--g1);padding:3px 10px;border-radius:6px">Futuro</span>';
 
-  setSegBar('migr-seg-cartao',   vCartao,  true, '#fff');
-  setSegBar('migr-seg-optou',    vOptou,   true, '#fff');
-  setSegBar('migr-seg-boleto',   vBoleto,  true, '#185FA5');
-  setSegBar('migr-seg-acionar',  vAcionar, true, '#7a5a00');
-  setSegBar('migr-seg-verificar',vVerif,   false, '#7a1a1a');
-
-  // Legendas
-  document.getElementById('migr-leg-cartao').textContent   = ' · '+vCartao;
-  document.getElementById('migr-leg-optou').textContent    = ' · '+vOptou+' ('+pct(vOptou)+'%)';
-  document.getElementById('migr-leg-boleto').textContent   = ' · '+vBoleto;
-  document.getElementById('migr-leg-acionar').textContent  = ' · '+vAcionar;
-  document.getElementById('migr-leg-verificar').textContent= ' · '+vVerif+' ('+pct(vVerif)+'%)';
-
-  // Lista filtrada por 3 colunas (plano)
-  const filtro = document.getElementById('migr-filtro').value;
-  const isTodos = filtro === '__todos__';
-
-  const listaFiltrada = ativos.filter(r=>{
-    const f = getFormaPagamento(r);
-    if(isTodos) return true;
-    return f === filtro;
-  });
-
-  const totalFiltrado = listaFiltrada.length;
-  document.getElementById('migr-count').textContent = isTodos
-    ? total+' cliente'+(total!==1?'s':'')
-    : totalFiltrado+' de '+total+' cliente'+(total!==1?'s':'');
-
-  const STATUS_BADGE = {
-    'Cartão de Crédito':            '<span style="background:#d4f4e8;color:#1a7a3a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">✅ Cartão</span>',
-    'Boleto':                       '<span style="background:#e8f0fb;color:#1a3a7a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🔵 Boleto</span>',
-    'Boleto (Optou não migrar)':    '<span style="background:#f0f0f0;color:#4a4a4a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🚫 Optou não migrar</span>',
-    'Acionar próximo mês':          '<span style="background:#fff8e1;color:#7a5a00;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🟡 Acionar</span>',
-    'Verificar se foi concretizado':'<span style="background:#fde8e8;color:#7a1a1a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🔍 Verificar</span>',
-  };
-
-  const PLANOS_COL = [
-    {key:'1', colId:'migr-col-1', hdrId:'migr-hdr-1'},
-    {key:'2', colId:'migr-col-2', hdrId:'migr-hdr-2'},
-    {key:'3', colId:'migr-col-3', hdrId:'migr-hdr-3'},
-  ];
-
-  PLANOS_COL.forEach(p=>{
-    const todos_plano = ativos.filter(r=>{
-      const pk = fv(r,'Plano','PlanoLookupId');
-      return (pk||'1') === p.key;
-    });
-    const filt_plano = todos_plano.filter(r=>{
-      const f = getFormaPagamento(r);
-      if(isTodos) return true;
-      return f === filtro;
-    });
-    const hdr = isTodos
-      ? todos_plano.length+' cliente'+(todos_plano.length!==1?'s':'')
-      : filt_plano.length+' de '+todos_plano.length;
-    document.getElementById(p.hdrId).textContent = hdr;
-    const rows = filt_plano.map((r,i)=>{
-      const nome = fv(r,'Title','Nome','title','name') || '—';
-      const forma = getFormaPagamento(r);
-      const badge = STATUS_BADGE[forma] || '<span style="background:var(--g3);color:var(--g1);padding:2px 8px;border-radius:10px;font-size:11px">⬜ Não def.</span>';
-      const bg = i%2===0?'#fff':'#f9fbfc';
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:'+bg+';border-bottom:1px solid var(--g3)">'
-        +'<span style="color:var(--navy);font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">'+nome+'</span>'
-        +'<span style="flex-shrink:0">'+badge+'</span>'
+    const saldoColor = (entradas-saidas)>=0?'color:#1a7a3a':'color:#c0392b';
+    const kpis = trimFuturo
+      ? '<div style="color:var(--g1);font-size:12px;text-align:center;padding:12px 0">Dados disponíveis quando o trimestre iniciar</div>'
+      : '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--g3)">'
+        +'<div style="text-align:center"><div style="font-size:20px;font-weight:600;color:var(--navy)">'+ativos+'</div><div style="font-size:11px;color:var(--g1)">Clientes ativos</div></div>'
+        +'<div style="text-align:center"><div style="font-size:20px;font-weight:600;color:#1a7a3a">+'+entradas+'</div><div style="font-size:11px;color:var(--g1)">Entradas</div></div>'
+        +'<div style="text-align:center"><div style="font-size:20px;font-weight:600;color:#c0392b">-'+saidas+'</div><div style="font-size:11px;color:var(--g1)">Saídas</div></div>'
+        +'<div style="text-align:center"><div style="font-size:20px;font-weight:600;'+saldoColor+'">'+(entradas-saidas>=0?'+':'')+(entradas-saidas)+'</div><div style="font-size:11px;color:var(--g1)">Saldo</div></div>'
         +'</div>';
-    }).join('');
-    document.getElementById(p.colId).innerHTML = rows || '<div style="padding:16px 12px;text-align:center;color:var(--g1);font-size:12px">Nenhum cliente</div>';
-  });
+
+    return '<div style="background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
+        +'<div><div style="font-size:14px;font-weight:600;color:var(--navy)">'+t.label+'</div>'
+        +'<div style="font-size:12px;color:var(--g1);margin-top:2px">'+t.sub+'</div></div>'
+        +badge
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center">'
+        +'<div style="display:flex;flex-direction:column;align-items:center">'
+          +'<div style="font-size:11px;color:var(--g1);margin-bottom:8px">Total de clientes vs meta</div>'
+          +'<canvas id="gauge-'+ti+'" width="240" height="140" role="img" aria-label="Velocímetro '+t.label+'"></canvas>'
+          +'<div style="font-size:11px;color:var(--g1);margin-top:4px">0 ——————————— '+META_TOTAL+'</div>'
+        +'</div>'
+        +'<div style="display:flex;flex-direction:column;align-items:center">'
+          +'<div style="font-size:11px;color:var(--g1);margin-bottom:8px">Distribuição por unidade</div>'
+          +(trimFuturo
+            ? '<div style="width:140px;height:140px;border-radius:50%;border:18px solid var(--g3);display:flex;align-items:center;justify-content:center"><span style="font-size:11px;color:var(--g1)">Sem dados</span></div>'
+            : '<canvas id="donut-'+ti+'" width="140" height="140" role="img" aria-label="Rosca '+t.label+'"></canvas>')
+          +'<div style="display:flex;gap:12px;margin-top:8px">'
+            +'<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:#91DBE4"></div><span style="font-size:11px;color:var(--g1)">Contab · '+ativosC+(ativos?' ('+pctC+'%)':'')+'</span></div>'
+            +'<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:#F62642"></div><span style="font-size:11px;color:var(--g1)">Tech · '+ativosT+(ativos?' ('+pctT+'%)':'')+'</span></div>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+      +kpis
+      +'</div>';
+  }).join('');
+
+  document.getElementById('trim-container').innerHTML = html;
+
+  // Desenhar gráficos após inserir HTML
+  setTimeout(()=>{
+    TRIMESTRES.forEach((t,ti)=>{
+      const fimTrim = t.snapMes;
+      const metaAtivos = META_ACUM_TOTAL[t.metaIdx];
+      const trimFuturo = mesAtual < t.meses[0];
+
+      // Calcular ativos para o gauge
+      let ativos = 0;
+      if(!trimFuturo){
+        const snapC = snapshotPorPeriodo(rawContab,getEntradaYM_contab,fimTrim).filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,fimTrim)==='ATIVO');
+        const snapT = snapshotPorPeriodo(rawTech,getEntradaYM_tech,fimTrim).filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,fimTrim)==='ATIVO');
+        const ativosC2 = snapC.length, ativosT2 = snapT.length;
+        ativos = ativosC2+ativosT2;
+
+        // Donut
+        const dc = document.getElementById('donut-'+ti);
+        if(dc && typeof Chart !== 'undefined'){
+          new Chart(dc, {
+            type:'doughnut',
+            data:{datasets:[{data:[ativosC2,ativosT2],backgroundColor:['#91DBE4','#F62642'],borderWidth:2,borderColor:'#fff'}]},
+            options:{responsive:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+          });
+        }
+      }
+
+      // Gauge
+      const gc = document.getElementById('gauge-'+ti);
+      if(!gc) return;
+      const c = gc.getContext('2d');
+      const w=gc.width, h=gc.height;
+      const cx=w/2, cy=h-10, r=Math.min(w,h*2)/2-18;
+      c.clearRect(0,0,w,h);
+      // trilha
+      c.beginPath(); c.arc(cx,cy,r,Math.PI,2*Math.PI);
+      c.strokeStyle='#EBF0F3'; c.lineWidth=20; c.stroke();
+      // valor
+      if(ativos>0){
+        const ang = Math.PI + (ativos/META_TOTAL)*Math.PI;
+        c.beginPath(); c.arc(cx,cy,r,Math.PI,ang);
+        c.strokeStyle = ativos>=metaAtivos?'#0C7488':'#91DBE4';
+        c.lineWidth=20; c.stroke();
+      }
+      // marcador meta
+      const metaAng = Math.PI + (metaAtivos/META_TOTAL)*Math.PI;
+      c.beginPath();
+      c.moveTo(cx+(r-16)*Math.cos(metaAng), cy+(r-16)*Math.sin(metaAng));
+      c.lineTo(cx+(r+16)*Math.cos(metaAng), cy+(r+16)*Math.sin(metaAng));
+      c.strokeStyle='#F62642'; c.lineWidth=2; c.stroke();
+      // label meta
+      c.fillStyle='#F62642'; c.font='11px Poppins,sans-serif';
+      c.textAlign = metaAng > 1.6*Math.PI ? 'left':'right';
+      c.fillText(metaAtivos, cx+(r+22)*Math.cos(metaAng), cy+(r+22)*Math.sin(metaAng));
+      // valor central
+      c.fillStyle='#0E1428'; c.font='600 22px Poppins,sans-serif'; c.textAlign='center';
+      c.fillText(trimFuturo?'—':ativos, cx, cy-10);
+    });
+  },50);
 }
 function renderShare() {
   // Data de atualização
