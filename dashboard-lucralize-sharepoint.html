@@ -184,7 +184,6 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       <button class="tab-btn" onclick="setTab('tech',this)">💻 Lucralize Tech</button>
       <button class="tab-btn" onclick="setTab('cont',this)">📋 Contabilidade</button>
       <button class="tab-btn" onclick="setTab('crescimento',this)">🚀 Nosso Crescimento</button>
-      <button class="tab-btn" onclick="setTab('trimestral',this)">📅 Visão Trimestral</button>
       <button class="tab-btn" onclick="setTab('share',this)">📤 Compartilhar</button>
       <button class="tab-btn" id="btn-collapse" onclick="toggleHeader()" style="margin-left:8px;opacity:.8;font-size:11px;letter-spacing:0">↑ Recolher</button>
     </div>
@@ -463,11 +462,6 @@ main{max-width:1400px;margin:0 auto;padding:18px}
       </div>
     </div>
 
-    <div class="section" id="sec-trimestral">
-      <div class="sec-title">📅 Visão Trimestral — Clientes Ativos</div>
-      <div id="trim-container"></div>
-    </div>
-
     <div class="section" id="sec-share">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
         <div style="font-family:'Comfortaa',cursive;font-size:16px;color:var(--navy);font-weight:700">📊 Resumo Executivo — Lucralize</div>
@@ -506,7 +500,7 @@ main{max-width:1400px;margin:0 auto;padding:18px}
 const CONFIG = {
   clientId:'c0868f3b-764c-4c5b-a9fc-4af4b6eb0baf',
   tenantId:'5173aa83-66e1-49f3-9128-f2251b43294d',
-  redirectUri:'https://ronaldocassimiro.github.io/gestao-comercial/dashboard-lucralize-sharepoint.html',
+  redirectUri:'https://lucralize-comercial.github.io/gestao-comercial/dashboard-lucralize-sharepoint.html',
   contabilidade:{siteUrl:'lucralize.sharepoint.com:/',listName:'Controle de Clientes'},
   tech:{siteUrl:'lucralize.sharepoint.com:/sites/LUCRALIZETECH',listName:'Base de Usuários'}
 };
@@ -1791,144 +1785,10 @@ function setTab(tab,btn){
   document.getElementById('sec-'+tab).classList.add('on');
   btn.classList.add('active');
   const fb=document.getElementById('filters-bar');
-  if(fb) fb.style.display=(tab==='crescimento'||tab==='share'||tab==='trimestral')?'none':'flex';
+  if(fb) fb.style.display=(tab==='crescimento'||tab==='share')?'none':'flex';
   if(tab==='crescimento') renderCrescimento();
   if(tab==='share') renderShare();
-  if(tab==='trimestral') renderTrimestral();
 }
-
-function renderTrimestral(){
-  if(!rawContab||!rawTech||(!rawContab.length&&!rawTech.length)) return;
-
-  const META_TOTAL = 750;
-  const BG = '#0E1428';
-  const BG2 = '#181F30';
-  const TEXT = '#ffffff';
-  const TEXT2 = '#AAB8C2';
-  const TEAL = '#91DBE4';
-  const RED = '#F62642';
-
-  const TRIMESTRES = [
-    {label:'1º Trimestre 2026', sub:'Jan · Fev · Mar', meses:['2026-01','2026-02','2026-03'], snapMes:'2026-03', metaIdx:2},
-    {label:'2º Trimestre 2026', sub:'Abr · Mai · Jun', meses:['2026-04','2026-05','2026-06'], snapMes:'2026-06', metaIdx:5},
-    {label:'3º Trimestre 2026', sub:'Jul · Ago · Set', meses:['2026-07','2026-08','2026-09'], snapMes:'2026-09', metaIdx:8},
-    {label:'4º Trimestre 2026', sub:'Out · Nov · Dez', meses:['2026-10','2026-11','2026-12'], snapMes:'2026-12', metaIdx:11},
-  ];
-
-  const hoje = new Date();
-  const mesAtual = hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
-
-  const html = TRIMESTRES.map((t,ti)=>{
-    const fimTrim = t.snapMes;
-    const metaAtivos = META_ACUM_TOTAL[t.metaIdx];
-    const trimPassado = mesAtual > fimTrim;
-    const trimAtual = t.meses.includes(mesAtual);
-    const trimFuturo = mesAtual < t.meses[0];
-
-    let ativosC=0, ativosT=0, entradas=0, saidas=0;
-    if(!trimFuturo){
-      const snapC = snapshotPorPeriodo(rawContab,getEntradaYM_contab,fimTrim).filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,fimTrim)==='ATIVO');
-      const snapT = snapshotPorPeriodo(rawTech,getEntradaYM_tech,fimTrim).filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,fimTrim)==='ATIVO');
-      ativosC = snapC.length; ativosT = snapT.length;
-      entradas = t.meses.reduce((s,m)=>s+rawContab.filter(r=>getEntradaYM_contab(r)===m).length+rawTech.filter(r=>getEntradaYM_tech(r)===m).length,0);
-      saidas   = t.meses.reduce((s,m)=>s+rawContab.filter(r=>getSaidaYM_contab(r)===m).length+rawTech.filter(r=>getSaidaYM_tech(r)===m).length,0);
-    }
-    const ativos = ativosC+ativosT;
-    const pctC = ativos?Math.round(ativosC/ativos*100):0;
-    const pctT = ativos?Math.round(ativosT/ativos*100):0;
-    const saldo = entradas-saidas;
-
-    const badge = trimPassado
-      ? '<span style="font-size:11px;background:#0C7488;color:#fff;padding:4px 12px;border-radius:6px">Concluído</span>'
-      : trimAtual
-        ? '<span style="font-size:11px;background:#F62642;color:#fff;padding:4px 12px;border-radius:6px">Em andamento</span>'
-        : '<span style="font-size:11px;background:#2a3550;color:#AAB8C2;padding:4px 12px;border-radius:6px">Futuro</span>';
-
-    const kpis = trimFuturo
-      ? '<div style="color:#AAB8C2;font-size:12px;text-align:center;padding:16px 0;border-top:1px solid #2a3550;margin-top:16px">Dados disponíveis quando o trimestre iniciar</div>'
-      : '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid #2a3550">'
-        +'<div style="text-align:center;background:#2a3550;border-radius:8px;padding:14px 8px"><div style="font-size:26px;font-weight:600;color:'+TEXT+'">'+ativos+'</div><div style="font-size:11px;color:'+TEXT2+';margin-top:4px">Clientes ativos</div></div>'
-        +'<div style="text-align:center;background:#2a3550;border-radius:8px;padding:14px 8px"><div style="font-size:26px;font-weight:600;color:#4cdf8a">+'+entradas+'</div><div style="font-size:11px;color:'+TEXT2+';margin-top:4px">Entradas</div></div>'
-        +'<div style="text-align:center;background:#2a3550;border-radius:8px;padding:14px 8px"><div style="font-size:26px;font-weight:600;color:#F62642">-'+saidas+'</div><div style="font-size:11px;color:'+TEXT2+';margin-top:4px">Saídas</div></div>'
-        +'<div style="text-align:center;background:#2a3550;border-radius:8px;padding:14px 8px"><div style="font-size:26px;font-weight:600;color:'+(saldo>=0?'#4cdf8a':'#F62642')+'">'+(saldo>=0?'+':'')+saldo+'</div><div style="font-size:11px;color:'+TEXT2+';margin-top:4px">Saldo</div></div>'
-        +'</div>';
-
-    return '<div style="background:'+BG+';border-radius:14px;padding:24px 28px;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,0,0,.3)">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">'
-        +'<div>'
-          +'<div style="font-size:16px;font-weight:700;color:'+TEXT+'">'+t.label+'</div>'
-          +'<div style="font-size:12px;color:'+TEXT2+';margin-top:4px">'+t.sub+'</div>'
-        +'</div>'+badge
-      +'</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center">'
-        +'<div style="display:flex;flex-direction:column;align-items:center">'
-          +'<div style="font-size:11px;color:'+TEXT2+';margin-bottom:10px;letter-spacing:.5px;text-transform:uppercase">Total de clientes vs meta</div>'
-          +'<canvas id="gauge-'+ti+'" width="320" height="185" role="img" aria-label="Velocímetro '+t.label+'"></canvas>'
-          +'<div style="font-size:11px;color:'+TEXT2+';margin-top:6px">0 ———————————————— '+META_TOTAL+'</div>'
-        +'</div>'
-        +'<div style="display:flex;flex-direction:column;align-items:center">'
-          +'<div style="font-size:11px;color:'+TEXT2+';margin-bottom:10px;letter-spacing:.5px;text-transform:uppercase">Distribuição por unidade</div>'
-          +(trimFuturo
-            ? '<div style="width:190px;height:190px;border-radius:50%;border:22px solid #2a3550;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:'+TEXT2+'">Sem dados</span></div>'
-            : '<canvas id="donut-'+ti+'" width="190" height="190" role="img" aria-label="Rosca '+t.label+'"></canvas>')
-          +'<div style="display:flex;gap:16px;margin-top:12px">'
-            +'<div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:50%;background:'+TEAL+'"></div><span style="font-size:12px;color:'+TEXT+'">Contab · '+ativosC+(ativos?' ('+pctC+'%)':'')+'</span></div>'
-            +'<div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:50%;background:'+RED+'"></div><span style="font-size:12px;color:'+TEXT+'">Tech · '+ativosT+(ativos?' ('+pctT+'%)':'')+'</span></div>'
-          +'</div>'
-        +'</div>'
-      +'</div>'
-      +kpis
-      +'</div>';
-  }).join('');
-
-  document.getElementById('trim-container').innerHTML = html;
-
-  setTimeout(()=>{
-    TRIMESTRES.forEach((t,ti)=>{
-      const fimTrim = t.snapMes;
-      const metaAtivos = META_ACUM_TOTAL[t.metaIdx];
-      const trimFuturo = mesAtual < t.meses[0];
-      let ativos=0, ativosC2=0, ativosT2=0;
-      if(!trimFuturo){
-        const snapC = snapshotPorPeriodo(rawContab,getEntradaYM_contab,fimTrim).filter(r=>getSituacaoSnapshot(r,getSaidaYM_contab,fimTrim)==='ATIVO');
-        const snapT = snapshotPorPeriodo(rawTech,getEntradaYM_tech,fimTrim).filter(r=>getSituacaoSnapshot(r,getSaidaYM_tech,fimTrim)==='ATIVO');
-        ativosC2=snapC.length; ativosT2=snapT.length; ativos=ativosC2+ativosT2;
-        const dc = document.getElementById('donut-'+ti);
-        if(dc && typeof Chart!=='undefined'){
-          new Chart(dc,{
-            type:'doughnut',
-            data:{datasets:[{data:[ativosC2,ativosT2],backgroundColor:['#91DBE4','#F62642'],borderWidth:3,borderColor:'#0E1428'}]},
-            options:{responsive:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
-          });
-        }
-      }
-      const gc = document.getElementById('gauge-'+ti);
-      if(!gc) return;
-      const c=gc.getContext('2d');
-      const w=gc.width,h=gc.height,cx=w/2,cy=h-10,r=Math.min(w,h*2)/2-22;
-      c.clearRect(0,0,w,h);
-      c.beginPath(); c.arc(cx,cy,r,Math.PI,2*Math.PI);
-      c.strokeStyle='#2a3550'; c.lineWidth=24; c.stroke();
-      if(ativos>0){
-        const ang=Math.PI+(ativos/META_TOTAL)*Math.PI;
-        c.beginPath(); c.arc(cx,cy,r,Math.PI,ang);
-        c.strokeStyle=ativos>=metaAtivos?'#0C7488':'#91DBE4';
-        c.lineWidth=24; c.stroke();
-      }
-      const metaAng=Math.PI+(metaAtivos/META_TOTAL)*Math.PI;
-      c.beginPath();
-      c.moveTo(cx+(r-20)*Math.cos(metaAng),cy+(r-20)*Math.sin(metaAng));
-      c.lineTo(cx+(r+20)*Math.cos(metaAng),cy+(r+20)*Math.sin(metaAng));
-      c.strokeStyle='#F62642'; c.lineWidth=2.5; c.stroke();
-      c.fillStyle='#F62642'; c.font='bold 12px Poppins,sans-serif';
-      c.textAlign=metaAng>1.6*Math.PI?'left':'right';
-      c.fillText(metaAtivos,cx+(r+28)*Math.cos(metaAng),cy+(r+28)*Math.sin(metaAng));
-      c.fillStyle='#ffffff'; c.font='700 28px Poppins,sans-serif'; c.textAlign='center';
-      c.fillText(trimFuturo?'—':ativos,cx,cy-12);
-    });
-  },50);
-}
-
 function renderShare() {
   // Data de atualização
   const upd = document.getElementById('share-upd');
